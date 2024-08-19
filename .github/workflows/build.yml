@@ -16,6 +16,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Python 2.7
+        uses: LizardByte/setup-python-action@master
+        with:
+          python-version: '2.7'
+
       - name: Build
         run: sh ./build.sh lenovo89_tb_x10_jb2
 
