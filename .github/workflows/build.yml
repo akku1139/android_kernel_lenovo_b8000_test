@@ -31,7 +31,7 @@ jobs:
           python-version: '2.7'
 
       - name: Build
-        run: sh ./build.sh lenovo89_tb_x10_jb2
+        run: bash ./build.sh lenovo89_tb_x10_jb2
 
       - name: Git
         run: |
