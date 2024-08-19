@@ -16,37 +16,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # - name: Restore Python 2.7
-      #   id: cache-python27
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     # path: /tmp/python27
-      #     path: /
-      #     key: python27-bin
-
-      # - name: Config Python 2.7
-      #   if: steps.cache-python27.outputs.cache-hit == 'true'
-      #   run: |
-      #     source /tmp/python27/venv/activate
-      #     # show python version
-      #     echo "Python venv version:"
-      #     python --version
-
-      - name: Setup Python 2.7
-        # if: steps.cache-python27.outputs.cache-hit != 'true'
-        uses: LizardByte/setup-python-action@master
-        with:
-          python-version: '2.7'
-
-      - name: sh is bash
-        run: sudo ln -sf /usr/bin/bash /usr/bin/sh
-
-      # - name: Save Python 2.7
-      #   if: steps.cache-python27.outputs.cache-hit != 'true'
-      #   uses: actions/cache/save@v4
-      #   with:
-      #     path: /tmp/python27
-      #     key: python27-bin
+      - name: Setup env
+        run: |
+          sudo ln -sf /usr/bin/bash /usr/bin/sh
+          sudo apt install python2
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
