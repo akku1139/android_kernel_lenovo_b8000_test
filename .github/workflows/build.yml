@@ -16,19 +16,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Python 2
-        id: cache-python2
-        uses: actions/cache@v4
+      - name: Restore Python 2.7
+        id: cache-python27
+        uses: actions/cache/restore@v4
         with:
           path: /tmp/python27
-          key: python2-bin
-          save-always: true
+          key: python27-bin
 
       - name: Setup Python 2.7
-        if: steps.cache-python2.outputs.cache-hit != 'true'
+        if: steps.cache-python27.outputs.cache-hit != 'true'
         uses: LizardByte/setup-python-action@master
         with:
           python-version: '2.7'
+
+      - name: Save Python 2.7
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/python27
+          key: python27-bin
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
