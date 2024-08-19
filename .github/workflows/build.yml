@@ -18,8 +18,9 @@ jobs:
 
       - name: Setup env
         run: |
-          sudo ln -sf /usr/bin/bash /usr/bin/sh
           sudo apt install python2
+          sudo ln -sf /usr/bin/bash /usr/bin/sh
+          sudo ln -sf /usr/bin/python2 /usr/bin/python
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
