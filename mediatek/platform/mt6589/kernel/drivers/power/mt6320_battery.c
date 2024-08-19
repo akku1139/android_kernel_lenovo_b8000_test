@@ -97,7 +97,6 @@ int mtk_jeita_support_flag=0;
 #define AUXADC_REF_CURRENT_CHANNEL         1
 #define AUXADC_CHARGER_VOLTAGE_CHANNEL  2
 #define AUXADC_TEMPERATURE_CHANNEL         3
-#define BATTERY_OVER_TEMP              3
 int g_R_BAT_SENSE = R_BAT_SENSE;
 int g_R_I_SENSE = R_I_SENSE;
 int g_R_CHARGER_1 = R_CHARGER_1;
@@ -496,6 +495,7 @@ int battery_in_data[1] = {0};
 int battery_out_data[1] = {0};    
 
 int charging_level_data[1] = {0};
+int g_bat_init_flag=0;
 
 kal_bool g_ADC_Cali = KAL_FALSE;
 kal_bool g_ftm_battery_flag = KAL_FALSE;
@@ -1156,7 +1156,7 @@ static void mt6320_battery_update_power_down(struct mt6320_battery_data *bat_dat
 void BAT_UpdateChargerStatus(void)
 {
 #if !defined(CONFIG_POWER_EXT)	
-	if(gFG_booting_counter_I_FLAG == 2) {
+	if(g_bat_init_flag == 1) {
 		mt6320_ac_update(&mt6320_ac_main);
 		mt6320_usb_update(&mt6320_usb_main);
 	}
@@ -1170,8 +1170,6 @@ void BATTERY_SetUSBState(int usb_state_value)
     xlog_printk(ANDROID_LOG_DEBUG, "Power/Battery", "[BATTERY_SetUSBState] in FPGA/EVB, no service\r\n");
 }
 EXPORT_SYMBOL(BATTERY_SetUSBState);
-
-int g_bat_init_flag=0;
 
 static int mt6320_battery_probe(struct platform_device *dev)    
 {
@@ -1483,6 +1481,9 @@ kal_bool pmic_chrdet_status(void)
 ///////////////////////////////////////////////////////////////////////////////////////////
 //// Pulse Charging Algorithm 
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+int boot_check_once=1;
+
 void select_charging_curret(void)
 {
     if (g_ftm_battery_flag) 
@@ -2494,7 +2495,6 @@ int BAT_CheckBatteryStatus(void)
         (BMT_status.temperature == ERR_CHARGE_TEMPERATURE))
     {
         xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Under Temperature or NTC fail !!\n\r");                
-	BMT_status.charger_protect_status = BATTERY_OVER_TEMP;//加上这句话
         BMT_status.bat_charging_state = CHR_ERROR;
         return PMU_STATUS_FAIL;       
     }
@@ -2502,7 +2502,6 @@ int BAT_CheckBatteryStatus(void)
     if (BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
     {
         xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Over Temperature !!\n\r");                
-	BMT_status.charger_protect_status = BATTERY_OVER_TEMP;//加上这句话		
         BMT_status.bat_charging_state = CHR_ERROR;
         return PMU_STATUS_FAIL;       
     }    
@@ -2585,19 +2584,6 @@ PMU_STATUS BAT_BatteryStatusFailAction(void)
 
     /*  Disable charger */
     pchr_turn_off_charging();
-
- if ((BMT_status.temperature <= (MAX_CHARGE_TEMPERATURE - 10)) &&     // 小于MAX_CHARGE_TEMPERATURE-5以及高于MIN_CHARGE_TEMPERATURE+5的时候恢复充电
-    (BMT_status.temperature >= (MIN_CHARGE_TEMPERATURE + 10))&&
-    (BMT_status.temperature != ERR_CHARGE_TEMPERATURE)&&
-    (BMT_status.charger_protect_status == BATTERY_OVER_TEMP))
- {
-    BMT_status.bat_charging_state = CHR_PRE;
-    BMT_status.charger_protect_status = 0;
-    if (Enable_BATDRV_LOG == 1) 
-    {
-        xlog_printk(ANDROID_LOG_INFO, "Power/Battery",   "[BATTERY] temperture in range... start charging again!!\n\r");
-    }
- }
 
     return PMU_STATUS_OK;
 }
@@ -3033,6 +3019,15 @@ void BAT_thread(void)
 	}
 	else if(gFG_booting_counter_I_FLAG == 2)
 	{
+		if(boot_check_once==1)
+		{
+			if( upmu_is_chr_det() == KAL_TRUE && BMT_status.SOC == 100 && get_rtc_spare_fg_value() == 100)
+			{
+				g_bat_full_user_view = KAL_TRUE;                
+				printk("[BATTERY] g_bat_full_user_view=%d\n", g_bat_full_user_view);
+			}
+			boot_check_once=0;
+		}
 		mt6320_ac_update(&mt6320_ac_main);
 		mt6320_usb_update(&mt6320_usb_main);
 		mt6320_battery_update(&mt6320_battery_main);  	
@@ -3131,16 +3126,16 @@ void BAT_thread(void)
             return;
         }
 
-        if(1)
+        if(0)
         {
             if ( (BMT_status.bat_charging_state == CHR_TOP_OFF) &&
                  (BMT_status.SOC == 100) && 
                  (BMT_status.bat_vol >= Batt_VoltToPercent_Table[10].BattVolt) )
             {
-               
-                    printk( "Power/Battery [BATTERY] Battery real full(%ld,%d) and disable charging !\n", 
+                if (Enable_BATDRV_LOG == 1) {
+                    xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[BATTERY] Battery real full(%ld,%d) and disable charging !\n", 
                             BMT_status.SOC, Batt_VoltToPercent_Table[10].BattVolt); 
-
+                }
                 BMT_status.bat_charging_state = CHR_BATFULL;
                 BAT_BatteryFullAction();
                 return;
@@ -3248,10 +3243,9 @@ int bat_thread_kthread(void *x)
 #if defined(CONFIG_POWER_EXT)
             BAT_thread();
 #else
-            if(g_FG_init == 0)
+            if(g_FG_init == 1)
             {
-                g_FG_init=1;
-                fgauge_initialization();
+                g_FG_init=2;
                 FGADC_thread_kthread();
                 //sync FG timer
                 FGADC_thread_kthread();
@@ -4164,14 +4158,20 @@ static struct hrtimer battery_kthread_timer;
 static struct task_struct *battery_kthread_hrtimer_task = NULL;
 static int battery_kthread_flag = 0;
 static DECLARE_WAIT_QUEUE_HEAD(battery_kthread_waiter);
-
+static u8 g_bat_thread_count = 0;
 int battery_kthread_handler(void *unused)
 {
     ktime_t ktime;
 
     do
     {
-        ktime = ktime_set(10, 0);	// 10s, 10* 1000 ms
+        if(g_bat_thread_count < 3) {
+        	xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "g_bat_thread_count : done\n", g_bat_thread_count);
+					g_bat_thread_count += 1;
+					ktime = ktime_set(5, 0);	// 5s, 5* 1000 ms
+				}else {
+		    	ktime = ktime_set(10, 0);	// 10s, 10* 1000 ms
+		    }
     
         wait_event_interruptible(battery_kthread_waiter, battery_kthread_flag != 0);
     
@@ -4196,7 +4196,8 @@ void battery_kthread_hrtimer_init(void)
 {
     ktime_t ktime;
 
-    ktime = ktime_set(10, 0);	// 10s, 10* 1000 ms
+		ktime = ktime_set(5, 0);	// 5s, 5* 1000 ms
+	
     hrtimer_init(&battery_kthread_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
     battery_kthread_timer.function = battery_kthread_hrtimer_func;    
     hrtimer_start(&battery_kthread_timer, ktime, HRTIMER_MODE_REL);
@@ -4209,8 +4210,6 @@ void battery_kthread_hrtimer_init(void)
 
     xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "battery_kthread_hrtimer_init : done\n" );
 }
-
-int g_bat_init_flag=0;
 
 static int mt6320_battery_probe(struct platform_device *dev)    
 {
@@ -4332,7 +4331,11 @@ static int mt6320_battery_probe(struct platform_device *dev)
     BMT_status.POSTFULL_charging_time = 0;
 
     BMT_status.bat_charging_state = CHR_PRE;
-
+		if(g_FG_init == 0)
+		{
+		  g_FG_init=1;
+		  fgauge_initialization();
+		}
     //baton initial setting
     //ret=pmic_config_interface(CHR_CON7, 0x01, PMIC_BATON_TDET_EN_MASK, PMIC_BATON_TDET_EN_SHIFT); //BATON_TDET_EN=1
     //ret=pmic_config_interface(AUXADC_CON0, 0x01, PMIC_RG_BUF_PWD_B_MASK, PMIC_RG_BUF_PWD_B_SHIFT); //RG_BUF_PWD_B=1

@@ -1,0 +1,27 @@
+name: Build
+
+on:
+  push:
+    branches: [asus_n]
+  #workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: sh ./build.sh lenovo89_tb_x10_jb2
+
+      - name: Git
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git add ./build_result
+            git commit -m "Build"
+            git push
+          fi

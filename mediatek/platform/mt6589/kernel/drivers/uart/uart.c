@@ -61,6 +61,7 @@
 #include "linux/delay.h"
 #include "mach/mt_idle.h"
 #include <linux/syscore_ops.h>
+#include <cust_gpio_usage.h>
 //Fixme 
 #define reg_sync_writeb(v, a)			mt65xx_reg_sync_writeb(v, a)
 #define reg_sync_writel(v, a)			mt65xx_reg_sync_writel(v, a)
@@ -3993,6 +3994,24 @@ static int mtk_uart_suspend(struct platform_device *pdev, pm_message_t state)
     if(uart && (uart->nport < UART_NR) && (mtk_uart_suspend_resume_en[uart->nport]!=0 ) ){
         ret = uart_suspend_port(&mtk_uart_drv, &uart->port);
         printk(KERN_NOTICE "[UART%d] Suspend(%d)!\n", uart->nport, ret);
+	switch(uart->nport){
+	case 0:
+	    #ifdef GPIO_UART_URXD1_PIN
+	    mt_set_gpio_mode(GPIO_UART_URXD1_PIN, GPIO_UART_URXD1_PIN_M_GPIO);
+	    #else
+	    printk(KERN_ERR "GPIO_UART_URXD1_PIN is not properly set\n");
+	    #endif
+	    break;
+	case 3:
+	    #ifdef GPIO_UART_URXD4_PIN
+	    mt_set_gpio_mode(GPIO_UART_URXD4_PIN, GPIO_UART_URXD4_PIN_M_GPIO);
+	    #else
+	    printk(KERN_ERR "GPIO_UART_URXD4_PIN is not properly set\n");
+	    #endif
+	    break;
+	default:
+	    break;
+	}
     }
 #endif //PM_SUSPEND_RESUME_CONFIG_EN
     return ret;
@@ -4011,6 +4030,23 @@ static int mtk_uart_resume(struct platform_device *pdev)
     }
 #else
     if (uart && (uart->nport < UART_NR) && (mtk_uart_suspend_resume_en[uart->nport]!=0 ) ) {
+	switch(uart->nport){
+	case 0:
+	    #ifdef GPIO_UART_URXD1_PIN
+	    mt_set_gpio_mode(GPIO_UART_URXD1_PIN, GPIO_UART_URXD1_PIN_M_URXD);
+	    #else
+	    printk(KERN_ERR "GPIO_UART_URXD1_PIN is not properly set p2\n");
+	    #endif
+	case 3:
+	    #ifdef GPIO_UART_URXD4_PIN
+	    mt_set_gpio_mode(GPIO_UART_URXD4_PIN, GPIO_UART_URXD4_PIN_M_URXD);
+	    #else
+	    printk(KERN_ERR "GPIO_UART_URXD4_PIN is not properly set p2\n");
+	    #endif
+	    break;
+	default:
+	    break;
+	}
         ret = uart_resume_port(&mtk_uart_drv, &uart->port);
         printk(KERN_NOTICE "[UART%d] Resume(%d)!\n", uart->nport, ret);
     }

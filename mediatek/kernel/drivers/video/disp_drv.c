@@ -210,14 +210,7 @@ static void lcm_udelay(UINT32 us)
 
 static void lcm_mdelay(UINT32 ms)
 {
-	if(ms < 10)
-	{
-		udelay(ms*100); //superdragonpt: CHECK: mediatek/platform/mt6589/kernel/drivers/video/dsi.drv.c
-	}                   //default udelay(1000 * ms)
-	else
-	{
-		udelay(ms*200);
-	}
+	msleep(ms);
 }
 
 static void lcm_send_cmd(UINT32 cmd)
@@ -485,10 +478,6 @@ const LCM_DRIVER *disp_drv_get_lcm_driver(const char *lcm_name)
 			}
 			else 
 			{
-			// feng add 
-				isLCMFound = TRUE;
-				lcm_drv = lcm;
-			// feng add end	
 				if(LCM_TYPE_DSI == lcm_params->type){
 					init_dsi(FALSE);
 				}
@@ -937,11 +926,6 @@ DISP_STATUS DISP_PowerEnable(BOOL enable)
     if (!is_ipoh_bootup)
         needStartEngine = true;
 
-    if (enable && lcm_drv && lcm_drv->resume_power)
-    {
-		lcm_drv->resume_power();
-    }
-
 	ret = (disp_drv->enable_power) ?
 		(disp_drv->enable_power(enable)) :
 		DISP_STATUS_NOT_IMPLEMENTED;
@@ -949,11 +933,7 @@ DISP_STATUS DISP_PowerEnable(BOOL enable)
     if (enable) {
         DAL_OnDispPowerOn();
     }
-    else if (lcm_drv && lcm_drv->suspend_power)
-    {
-        lcm_drv->suspend_power();
-    }
-
+	
 	up(&sem_update_screen);
 
 
@@ -1628,14 +1608,12 @@ static int _DISP_CaptureOvlKThread(void *data)
 	M4U_PORT_STRUCT portStruct;
 	unsigned int init = 0;
 	unsigned int enabled = 0;
-	int wait_ret = 0;
-    MMP_MetaDataBitmap_t Bitmap;
+       MMP_MetaDataBitmap_t Bitmap;
     buf_size = DISP_GetScreenWidth() * DISP_GetScreenHeight() * 4;
 
     while(1)
     {
-        wait_ret = wait_event_interruptible(reg_update_wq, gWakeupCaptureOvlThread);
-        DISP_LOG("[WaitQ] wait_event_interruptible() ret = %d, %d\n", wait_ret, __LINE__);
+        wait_event_interruptible(reg_update_wq, gWakeupCaptureOvlThread);
         gWakeupCaptureOvlThread = 0;
         if (init == 0)
         {
@@ -1886,7 +1864,7 @@ static int _DISP_ConfigUpdateKThread(void *data)
                         PanDispSettingPending = 0;
                     }
                     atomic_set(&OverlaySettingApplied, 1);
-                    wake_up(&reg_update_wq);
+                    wake_up_interruptible(&reg_update_wq);
                 }
                 MMProfileLog(MTKFB_MMP_Events.ConfigOVL, MMProfileFlagEnd);
 
@@ -2012,7 +1990,7 @@ static void _DISP_RegUpdateCallback(void* pParam)
         atomic_set(&OverlaySettingApplied, 1);
     }
     gWakeupCaptureOvlThread = 1;
-    wake_up(&reg_update_wq);
+    wake_up_interruptible(&reg_update_wq);
 }
 
 static void _DISP_TargetLineCallback(void* pParam)
@@ -2473,7 +2451,7 @@ UINT32 DISP_GetOutputBPPforDithering(void)
 
 DISP_STATUS DISP_Config_Overlay_to_Memory(unsigned int mva, int enable)
 {
-	int wait_ret = 0;
+//	int ret = 0;
 
 //	struct disp_path_config_mem_out_struct mem_out = {0};
 
@@ -2511,8 +2489,7 @@ DISP_STATUS DISP_Config_Overlay_to_Memory(unsigned int mva, int enable)
 //#endif
 
 		// Wait for reg update.
-		wait_ret = wait_event_interruptible(reg_update_wq, !MemOutConfig.dirty);
-		DISP_LOG("[WaitQ] wait_event_interruptible() ret = %d, %d\n", wait_ret, __LINE__);
+		wait_event_interruptible(reg_update_wq, !MemOutConfig.dirty);
 	}
 
 	return DSI_STATUS_OK;
@@ -2612,21 +2589,8 @@ DISP_STATUS DISP_Capture_Framebuffer( unsigned int pvbuf, unsigned int bpp, unsi
 {
     unsigned int mva;
     unsigned int ret = 0;
-    int wait_ret = 0;
     M4U_PORT_STRUCT portStruct;
 	DISP_FUNC();
-	int i;
-    for (i=0; i<OVL_LAYER_NUM; i++)
-    {
-        if (cached_layer_config[i].layer_en && cached_layer_config[i].security)
-            break;
-    }
-    if (i < OVL_LAYER_NUM)
-    {
-        // There is security layer.
-        memset(pvbuf, 0, DISP_GetScreenHeight()*DISP_GetScreenWidth()*bpp/8);
-        return DISP_STATUS_OK;
-    }
 	disp_drv_init_context();
 	disp_module_clock_on(DISP_MODULE_WDMA1, "Screen Capture");
 
@@ -2715,8 +2679,7 @@ DISP_STATUS DISP_Capture_Framebuffer( unsigned int pvbuf, unsigned int bpp, unsi
         MemOutConfig.dirty = 1;
         mutex_unlock(&MemOutSettingMutex);
         // Wait for reg update.
-        wait_ret = wait_event_interruptible(reg_update_wq, !MemOutConfig.dirty);
-        DISP_LOG("[WaitQ] wait_event_interruptible() ret = %d, %d\n", wait_ret, __LINE__);
+        wait_event_interruptible(reg_update_wq, !MemOutConfig.dirty);
         MMProfileLogEx(MTKFB_MMP_Events.CaptureFramebuffer, MMProfileFlagPulse, 4, 0);
     }
 

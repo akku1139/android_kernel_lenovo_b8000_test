@@ -98,27 +98,6 @@ typedef bool                    MBOOL;
 /*******************************************************************************
 *
 ********************************************************************************/
-///////////////////////////////////////////////////////////////////
-//for restricting range in mmap function
-//isp driver
-#define ISP_RTBUF_REG_RANGE  0x10000
-#define IMGSYS_BASE_ADDR     0x15000000
-#define ISP_REG_RANGE  	     (0x7000)   //0x6100,the same with the value in isp_reg.h and page-aligned
-//seninf driver
-#define SENINF_BASE_ADDR     0x15008000 //the same with the value in seninf_drv.cpp(chip-dependent)
-#define SENINF_REG_RANGE    (0x1000)   //0x800,the same with the value in seninf_reg.h and page-aligned
-//#define IMGSYS_CG_CLR0_ADDR  0x15000000 //the same with the value in seninf_drv.cpp(chip-dependent)
-//#define MMSYS_RANGE          (0x1000)   //0x100,the same with the value in seninf_drv.cpp and page-aligned
-#define PLL_BASE_ADDR        0x10000000 //the same with the value in seninf_drv.cpp(chip-dependent)
-#define PLL_RANGE            (0x1000)   //0x200,the same with the value in seninf_drv.cpp and page-aligned
-#define MIPIRX_CONFIG_ADDR   0x1500C000 //the same with the value in seninf_drv.cpp(chip-dependent)
-#define MIPIRX_CONFIG_RANGE (0x1000)//0x100,the same with the value in seninf_drv.cpp and page-aligned
-#define MIPIRX_ANALOG_ADDR   0x10012000 //the same with the value in seninf_drv.cpp(chip-dependent)
-#define MIPIRX_ANALOG_RANGE (0x1000)
-#define GPIO_BASE_ADDR       0x10005000 //the same with the value in seninf_drv.cpp(chip-dependent)
-#define GPIO_RANGE          (0x1000)
-
-///////////////////////////////////////////////////////////////////
 #define ISP_ADDR                        (CAMINF_BASE + 0x4000)
 #define ISP_ADDR_CAMINF                 CAMINF_BASE
 #define ISP_REG_ADDR_EN1                (ISP_ADDR + 0x4)
@@ -1990,7 +1969,6 @@ static MINT32 ISP_RTBC_ENQUE(MINT32 dma)
         //break;
     }
 
-#if 0
     //
     //spin_lock_irqsave(&(IspInfo.SpinLockRTBC),g_Flash_SpinLock);
     //check if buffer exist
@@ -2004,7 +1982,6 @@ static MINT32 ISP_RTBC_ENQUE(MINT32 dma)
             break;
         }
     }
-#endif
     //
     if (buffer_exist) {
         //
@@ -3710,19 +3687,12 @@ static MINT32 mmap_kmem(struct file *filp, struct vm_area_struct *vma)
                 return -EIO;
 
         /* map the whole physically contiguous area in one piece */
-		LOG_INF("Vma->vm_pgoff(0x%x),Vma->vm_start(0x%x),Vma->vm_end(0x%x),length(0x%x)",\
-			vma->vm_pgoff,vma->vm_start,vma->vm_end,length);
-		if(length>ISP_RTBUF_REG_RANGE)
-		{
-			LOG_ERR("mmap range error! : length(0x%x),ISP_RTBUF_REG_RANGE(0x%x)!",length,ISP_RTBUF_REG_RANGE);
-			return -EAGAIN;
-		}
-		if ((ret = remap_pfn_range(vma,
+        if ((ret = remap_pfn_range(vma,
                                    vma->vm_start,
                                    virt_to_phys((void *)pTbl_RTBuf) >> PAGE_SHIFT,
                                    length,
                                    vma->vm_page_prot)) < 0) {
-            return ret;
+                return ret;
         }
 
         return 0;
@@ -3735,71 +3705,18 @@ static MINT32 ISP_mmap(
     struct vm_area_struct*  pVma)
 {
     LOG_DBG("- E.");
-	long length = pVma->vm_end - pVma->vm_start;
+
     /* at offset RT_BUF_TBL_NPAGES we map the kmalloc'd area */
     if (pVma->vm_pgoff == RT_BUF_TBL_NPAGES) {
             return mmap_kmem(pFile, pVma);
     }
-    else 
-	{
-    	//
-	    pVma->vm_page_prot = pgprot_noncached(pVma->vm_page_prot);
-		LOG_INF("pVma->vm_pgoff(0x%x),phy(0x%x),pVmapVma->vm_start(0x%x),pVma->vm_end(0x%x),length(0x%x)",\
-			pVma->vm_pgoff,pVma->vm_pgoff<<PAGE_SHIFT,pVma->vm_start,pVma->vm_end,length);
-		MUINT32 pfn=pVma->vm_pgoff<<PAGE_SHIFT;//page from number, physical address of kernel memory
-		switch(pfn)
-		{
-			case IMGSYS_BASE_ADDR:	//imgsys
-				if(length>ISP_REG_RANGE)
-				{
-					LOG_ERR("mmap range error : length(0x%x),ISP_REG_RANGE(0x%x)!",length,ISP_REG_RANGE);
-					return -EAGAIN;
-				}
-				break;
-			case SENINF_BASE_ADDR:
-				if(length>SENINF_REG_RANGE)
-				{
-					LOG_ERR("mmap range error : length(0x%x),SENINF_REG_RANGE(0x%x)!",length,SENINF_REG_RANGE);
-					return -EAGAIN;
-				}
-				break;
-			case PLL_BASE_ADDR:
-				if(length>PLL_RANGE)
-				{
-					LOG_ERR("mmap range error : length(0x%x),PLL_RANGE(0x%x)!",length,PLL_RANGE);
-					return -EAGAIN;
-				}
-				break;
-			case MIPIRX_CONFIG_ADDR:
-				if(length>MIPIRX_CONFIG_RANGE)
-				{
-					LOG_ERR("mmap range error : length(0x%x),MIPIRX_CONFIG_RANGE(0x%x)!",length,MIPIRX_CONFIG_RANGE);
-					return -EAGAIN;
-				}
-				break;
-			case MIPIRX_ANALOG_ADDR:
-				if(length>MIPIRX_ANALOG_RANGE)
-				{
-					LOG_ERR("mmap range error : length(0x%x),MIPIRX_ANALOG_RANGE(0x%x)!",length,MIPIRX_ANALOG_RANGE);
-					return -EAGAIN;
-				}
-				break;
-			case GPIO_BASE_ADDR:
-				if(length>GPIO_RANGE)
-				{
-					LOG_ERR("mmap range error : length(0x%x),GPIO_RANGE(0x%x)!",length,GPIO_RANGE);
-					return -EAGAIN;
-				}
-				break;
-			default:
-				LOG_ERR("Illegal starting HW addr for mmap!");
-				return -EAGAIN;
-				break;
-		}
-	    if(remap_pfn_range(pVma, pVma->vm_start, pVma->vm_pgoff,pVma->vm_end - pVma->vm_start, pVma->vm_page_prot))
-	    {
-	        return -EAGAIN;
-	    }
+    else {
+    //
+    pVma->vm_page_prot = pgprot_noncached(pVma->vm_page_prot);
+    if(remap_pfn_range(pVma, pVma->vm_start, pVma->vm_pgoff,pVma->vm_end - pVma->vm_start, pVma->vm_page_prot))
+    {
+        return -EAGAIN;
+    }
     }
     //
     return 0;

@@ -491,14 +491,13 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
 
 		/* go through A_WAIT_VFALL then start a new session */
 		if (!ignore) {
-			#if defined(MTK_FAN5405_SUPPORT) || defined(MTK_BQ24158_SUPPORT) || defined(MTK_NCP1851_SUPPORT) || defined(MTK_BQ24196_SUPPORT) || defined(MTK_BQ24156_SUPPORT)
+			#if defined(MTK_FAN5405_SUPPORT) || defined(MTK_BQ24158_SUPPORT) || defined(MTK_NCP1851_SUPPORT) || defined(MTK_BQ24196_SUPPORT)
 			DBG(0, "too many VBUS error, restart power on sequence for switching charger!\n");
 			schedule_work(&musb->id_pin_work);
 			#else
 			musb_set_vbus(musb, 0);
 			DBG(0, "too many VBUS error, turn it off!\n");
 			#endif
-		//<2019/09/16 superdragonpt Integrate charging IC BQ24156
 		}
 		handled = IRQ_HANDLED;
 	}
@@ -1454,11 +1453,12 @@ musb_init_controller(struct device *dev,void __iomem *ctrl)
 #ifdef CONFIG_USB_MTK_OTG
 	INIT_DELAYED_WORK(&musb->id_pin_work, musb_id_pin_work);
 	otg_int_init();
-
-
 //	INIT_WORK(&musb->id_pin_work, musb_id_pin_work);
-
 #endif
+
+	/*initial done, turn off usb*/
+	musb_platform_disable(musb);
+
 	if (status < 0)
 		goto fail1;
 	status = musb_init_debugfs(musb);

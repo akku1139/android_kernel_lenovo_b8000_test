@@ -136,10 +136,10 @@ void aee_oops_free(struct aee_oops *oops);
 #define aee_kernel_dal_show(msg)	\
 	aee_kernel_dal_api(__FILE__, __LINE__, msg)
 
-void aee_kernel_exception_api(const char *file, const int line, const int db_opt, const char *module, const char *msg, ...);
-void aee_kernel_warning_api(const char *file, const int line, const int db_opt, const char *module, const char *msg, ...);
-void aee_kernel_reminding_api(const char *file, const int line, const int db_opt, const char *module, const char *msg, ...);
-void aee_kernel_dal_api(const char *file, const int line, const char *msg);
+__weak void aee_kernel_exception_api(const char *file, const int line, const int db_opt, const char *module, const char *msg, ...);
+__weak void aee_kernel_warning_api(const char *file, const int line, const int db_opt, const char *module, const char *msg, ...);
+__weak void aee_kernel_reminding_api(const char *file, const int line, const int db_opt, const char *module, const char *msg, ...);
+__weak void aee_kernel_dal_api(const char *file, const int line, const char *msg);
 
 void aed_md_exception(const int *log, int log_size, const int *phy, int phy_size, const char* detail);
 void aed_combo_exception(const int *log, int log_size, const int *phy, int phy_size, const char* detail);

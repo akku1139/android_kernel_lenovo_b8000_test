@@ -2857,7 +2857,6 @@ wlanRemove(
     prGlueInfo->prAdapter->fgIsWlanLaunched = FALSE;
     if(prGlueInfo->prAdapter->fgIsP2PRegistered) {
         p2pNetUnregister(prGlueInfo, FALSE);
-		p2pEalySuspendReg(prGlueInfo, FALSE);
         p2pRemove(prGlueInfo);
     }
 
