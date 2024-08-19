@@ -20,11 +20,11 @@ jobs:
         id: cache-python27
         uses: actions/cache/restore@v4
         with:
-          path: /tmp/python27
+          # path: /tmp/python27
           key: python27-bin
 
       - name: Config Python 2.7
-        if: steps.cache-python2.outputs.cache-hit != 'false'
+        if: steps.cache-python27.outputs.cache-hit != 'false'
         run: |
           source /tmp/python27/venv/activate
           # show python version
