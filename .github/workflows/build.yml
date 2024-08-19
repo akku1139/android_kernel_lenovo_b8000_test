@@ -22,6 +22,7 @@ jobs:
         with:
           path: /tmp/python27
           key: python2-bin
+          save-always: true
 
       - name: Setup Python 2.7
         if: steps.cache-python2.outputs.cache-hit != 'true'
