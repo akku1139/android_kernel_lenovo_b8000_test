@@ -125,17 +125,6 @@ static int nfc_remove(struct i2c_client *client);
 
 void msr3110_dev_irq_handler(void);
 
-static void msr3110_dev_irq_pin_ctrl( u8 IrqPinMode);
-
-typedef enum 
-{
-  NFC_IRQ_PIN_CTRL_INIT            = 0x00,
-  NFC_IRQ_PIN_CTRL_IRQ_MODE        = 0x01,
-  NFC_IRQ_PIN_CTRL_PULL_HIGH       = 0x02,
-  NFC_IRQ_PIN_CTRL_PULL_LOW        = 0x03
- } NFC_IRQ_PIN_CTRL; 
-
-
 
 static int nfc_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
@@ -146,7 +135,6 @@ static int nfc_probe(struct i2c_client *client, const struct i2c_device_id *id)
     my_pr_debug( "%s master tx 0x%p id %s", __func__, client->adapter->algo->master_xfer, id->name);
     my_pr_debug( "%s master tx 0x%p id %s", __func__, adapter->algo->master_xfer, id->name);
     nfc_client = client;
-	my_pr_err( "%s nfc_client->ext_flag: %d", __func__, nfc_client->ext_flag);
 
 	FUNC_END();
     return 0;
@@ -184,7 +172,7 @@ static struct i2c_driver nfc_driver = {
 // misc driver 
 static int msr3110_dev_open( struct inode *inode, struct file *filp)
 {
-	FUNC_START();
+	FUNC_START()
 
 	FUNC_END();
 	return 0;
@@ -232,8 +220,8 @@ static ssize_t msr3110_dev_write(struct file *filp, const char __user *buf,	size
 	nfc_client->addr = ( MSR3110_CMD_I2C_ID & I2C_MASK_FLAG);
 	SET_NFC_CLIENT_TIMING();
 	SET_NFC_CLIENT_BUS_LOG();
-
-	nfc_client->ext_flag = I2C_DMA_FLAG;
+	
+	nfc_client->ext_flag |= I2C_DMA_FLAG;
 	nfc_client->ext_flag |= I2C_DIRECTION_FLAG;
 	
 	retVal = i2c_master_send( nfc_client, (unsigned char *)I2CDMAWriteBuf_pa, count);
@@ -274,8 +262,8 @@ static ssize_t msr3110_dev_read(struct file *filp, char __user *buf, size_t coun
 		count = MSR3110_DEV_READ_MAX;
 	}
 	
-	nfc_client->addr = ( MSR3110_CMD_I2C_ID & I2C_MASK_FLAG); 
-    nfc_client->ext_flag = I2C_DMA_FLAG;
+	nfc_client->addr = ( MSR3110_CMD_I2C_ID & I2C_MASK_FLAG);    
+    nfc_client->ext_flag |= I2C_DMA_FLAG;
     nfc_client->ext_flag |= I2C_DIRECTION_FLAG;    
 	SET_NFC_CLIENT_TIMING();
 	SET_NFC_CLIENT_BUS_LOG();
@@ -408,19 +396,18 @@ end:
 }
 
 #define MSR3110_DEV_MAGIC_ID 0xCD
-#define MSR3110_IOCTL_FW_UPGRADE         _IOW( MSR3110_DEV_MAGIC_ID, 0x00, int)
-#define MSR3110_IOCTL_SET_VEN            _IOW( MSR3110_DEV_MAGIC_ID, 0x01, int)
-#define MSR3110_IOCTL_SET_RST            _IOW( MSR3110_DEV_MAGIC_ID, 0x02, int)
-#define MSR3110_IOCTL_IRQ                _IOW( MSR3110_DEV_MAGIC_ID, 0x03, int)
-#define MSR3110_IOCTL_IRQ_ABORT          _IOW( MSR3110_DEV_MAGIC_ID, 0x04, int)
-#define MSR3110_IOCTL_IRQ_REG            _IOW( MSR3110_DEV_MAGIC_ID, 0x05, int)
-#define MSR3110_IOCTL_CHIP_DETECT        _IOW( MSR3110_DEV_MAGIC_ID, 0x06, int)
+#define MSR3110_IOCTL_FW_UPGRADE _IOW( MSR3110_DEV_MAGIC_ID, 0x00, int)
+#define MSR3110_IOCTL_SET_VEN   _IOW( MSR3110_DEV_MAGIC_ID, 0x01, int)
+#define MSR3110_IOCTL_SET_RST   _IOW( MSR3110_DEV_MAGIC_ID, 0x02, int)
+#define MSR3110_IOCTL_IRQ       _IOW( MSR3110_DEV_MAGIC_ID, 0x03, int)
+#define MSR3110_IOCTL_IRQ_ABORT _IOW( MSR3110_DEV_MAGIC_ID, 0x04, int)
+#define MSR3110_IOCTL_IRQ_REG _IOW( MSR3110_DEV_MAGIC_ID, 0x05, int)
 
 
-#define MSR3110_IOCTL_ISP_READ_REG       _IOW( MSR3110_DEV_MAGIC_ID, 0xA1, int)
-#define MSR3110_IOCTL_ISP_WRITE_REG      _IOW( MSR3110_DEV_MAGIC_ID, 0xA2, int)
-#define MSR3110_IOCTL_SET_IRQ_NFC_PIN    _IOW( MSR3110_DEV_MAGIC_ID, 0xA3, int)
-#define MSR3110_IOCTL_SET_NFC_EINT_PIN   _IOW( MSR3110_DEV_MAGIC_ID, 0xA4, int)
+#define MSR3110_IOCTL_ISP_READ_REG _IOW( MSR3110_DEV_MAGIC_ID, 0xA1, int)
+#define MSR3110_IOCTL_ISP_WRITE_REG _IOW( MSR3110_DEV_MAGIC_ID, 0xA2, int)
+#define MSR3110_IOCTL_SET_IRQ_NFC_PIN _IOW( MSR3110_DEV_MAGIC_ID, 0xA3, int)
+#define MSR3110_IOCTL_SET_NFC_EINT_PIN _IOW( MSR3110_DEV_MAGIC_ID, 0xA4, int)
 
 
 typedef struct _msr3110fw_upgrade_info
@@ -463,8 +450,8 @@ static int nfc_i2c_writebytes(u8 addr, u32 len, u8 *buf)
 	nfc_client->addr = ( addr & I2C_MASK_FLAG);
 	SET_NFC_CLIENT_TIMING();
 	SET_NFC_CLIENT_BUS_LOG();
-
-	nfc_client->ext_flag = I2C_DMA_FLAG;
+	
+	nfc_client->ext_flag |= I2C_DMA_FLAG;
 	nfc_client->ext_flag |= I2C_DIRECTION_FLAG;
 	
 	retVal = i2c_master_send( nfc_client, (unsigned char *)I2CDMAWriteBuf_pa, len);
@@ -482,42 +469,6 @@ end:
 
 static void nfc_i2c_readbytes(u8 addr, u32 wlen, u32 rlen, u8 *wbuf, u8 *rbuf)
 {
-
-    int retVal;
-	int readWriteCount = 0;
-
-	memcpy( I2CDMAWriteBuf, wbuf, wlen);
-	
-	nfc_client->addr = ( addr & I2C_MASK_FLAG);
-	SET_NFC_CLIENT_TIMING();
-	SET_NFC_CLIENT_BUS_LOG();
-
-	nfc_client->ext_flag = I2C_DMA_FLAG;
-	nfc_client->ext_flag |= I2C_DIRECTION_FLAG;
-	nfc_client->ext_flag |= I2C_WR_FLAG;
-
-	readWriteCount = rlen << 8 | wlen;
-	
-	retVal = i2c_master_send( nfc_client, (unsigned char *)I2CDMAWriteBuf_pa, readWriteCount);
-
-	my_pr_debug( "%s i2c_master_send, retVal: %d \n", __func__, retVal);
-#if 0
-	if( retVal != rlen)
-	{
-		my_pr_err( "%s i2c_master_send fail\n", __func__);
-		retVal = -EIO;
-		goto end;
-	}
-#endif
-
-	memcpy( rbuf, I2CDMAWriteBuf, rlen);
-	
-end:
-	
-	return retVal;
-
-
-#if 0
 	int retVal;
     struct i2c_msg msgs[] = {
 	{
@@ -541,7 +492,7 @@ end:
     {
 		my_pr_err( "%s ERROR: i2c_transfer, retVal: %d", __func__, retVal);
     }
-#endif
+
 }
 
 static void SerialFlash_EnterSerialDebug(void)
@@ -607,12 +558,12 @@ u8 SerialFlash_DisableWDT(void)
     {
         SerialFlash_EnterSerialDebug();
         SerialFlash_EnterSingleStep();
-#if 1
+
         nfc_i2c_writebytes(Antares_SLAVE_ADDR, sizeof(cmd1), cmd1);
         nfc_i2c_writebytes(Antares_SLAVE_ADDR, sizeof(cmd2), cmd2);
         nfc_i2c_readbytes(Antares_SLAVE_ADDR, 3, 1, cmd1, &res1);
         nfc_i2c_readbytes(Antares_SLAVE_ADDR, 3, 1, cmd2, &res2);
-#endif
+
         SerialFlash_ExitSingleStep();
         SerialFlash_ExitSerialDebug();
 
@@ -887,7 +838,6 @@ static u8 SerialFlash_UpgradeA3(u8 *bufptr, u32 len)
         goto LAST_END;
     }
     my_pr_debug("%s Disable WDT Success", __func__);
-#if 1
 
 	rstatus = SerialFlash_Chg_Flash_I2C_Addrs();
     if (rstatus == 0)
@@ -901,21 +851,21 @@ static u8 SerialFlash_UpgradeA3(u8 *bufptr, u32 len)
     SerialFlash_EntryIspMode();
 
     SerialFlash_ReadChipID(id);
-    my_pr_err( "%s ID 0x%02X 0x%02X 0x%02X", __FUNCTION__, id[0], id[1], id[2]);
+    my_pr_debug( "%s ID 0x%02X 0x%02X 0x%02X", __FUNCTION__, id[0], id[1], id[2]);
 
     if (id[0] == 0xBF && id[1] == 0x25 && id[2] == 0x02)
     {
         flash_type = FLASH_SST;
-        my_pr_err("%s SST Flash", __FUNCTION__);
+        my_pr_debug("%s SST Flash", __FUNCTION__);
     }
     else if (id[0] == 0xC2 && id[1] == 0x20 && id[2] == 0x11)
     {
         flash_type = FLASH_MX;
-        my_pr_err("%s MXIC Flash", __FUNCTION__);
+        my_pr_debug("%s MXIC Flash", __FUNCTION__);
     }
 
 	rstatus = SerialFlash_ReadStatus();
-    my_pr_err("%s Flash Status = 0x%02X", __FUNCTION__, rstatus);
+    my_pr_debug("%s Flash Status = 0x%02X", __FUNCTION__, rstatus);
 
     SerialFlash_WriteStatus(flash_type, 0x00);
     
@@ -1008,7 +958,7 @@ static u8 SerialFlash_UpgradeA3(u8 *bufptr, u32 len)
 #if 1
     // Verify
     
-    for ( offset = FLASH_START; offset < FLASH_END; offset += 16)
+    for ( offset = FLASH_START; offset < FLASH_END; offset += 128)
     {
 		
         //if( ( (offset) % 0x0010 ) == 0 )
@@ -1016,11 +966,11 @@ static u8 SerialFlash_UpgradeA3(u8 *bufptr, u32 len)
         //    my_pr_info("%s Read Address = 0x%08X", __FUNCTION__, offset);
         //}
 
-		SerialFlash_ReadData( offset, 16, rdata);
+		SerialFlash_ReadData( offset, 128, rdata);
 
 		udelay(1);
         error = 0;
-        for ( i = 0; i < 16; i++)
+        for ( i = 0; i < 128; i++)
         {
             if( rdata[i] != bufptr[offset+i] )
             {
@@ -1045,7 +995,7 @@ static u8 SerialFlash_UpgradeA3(u8 *bufptr, u32 len)
 
     
 
-#endif
+
 LAST_END:
     if(rdata)
     {
@@ -1077,13 +1027,6 @@ typedef enum
   NFC_IRQ_STS_RAISE		= 0x04,
   NFC_IRQ_STS_ABORT		= 0x05
 } NFC_IRQ_STS; 
-
-typedef enum
-{
-	NFC_CHIP_DETECT_STS_FAIL     = 0x00,
-	NFC_CHIP_DETECT_STS_SUCCESS  = 0x01
-} NFC_CHIP_DETECT_STS;
-
 static long msr3110_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	long retVal = 0;
@@ -1258,34 +1201,14 @@ static long msr3110_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long
 		case MSR3110_IOCTL_IRQ_REG:   // IRQ Registration
 			my_pr_debug( "%s MSR3110_IOCTL_IRQ_REG ", __func__); 
 			
-			msr3110_dev_irq_pin_ctrl( NFC_IRQ_PIN_CTRL_IRQ_MODE);
-			//mt65xx_eint_set_sens(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_SENSITIVE);
-			//mt65xx_eint_set_hw_debounce(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_DEBOUNCE_CN);
-			//mt65xx_eint_registration(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_DEBOUNCE_EN, CUST_EINT_EXT_IRQ_NFC_POLARITY, msr3110_dev_irq_handler, 0);
-			//mt65xx_eint_mask( CUST_EINT_EXT_IRQ_NFC_NUM);
+			mt65xx_eint_set_sens(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_SENSITIVE);
+			mt65xx_eint_set_hw_debounce(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_DEBOUNCE_CN);
+			mt65xx_eint_registration(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_DEBOUNCE_EN, CUST_EINT_EXT_IRQ_NFC_POLARITY, msr3110_dev_irq_handler, 0);
+			mt65xx_eint_mask( CUST_EINT_EXT_IRQ_NFC_NUM);
             
 			retVal = NFC_IRQ_STS_SUCCESS;
 
 			break;
-
-		case MSR3110_IOCTL_CHIP_DETECT:
-			my_pr_debug( "%s MSR3110_IOCTL_CHIP_DETECT ", __func__);
-
-			msr3110_dev_irq_pin_ctrl( NFC_IRQ_PIN_CTRL_PULL_LOW);
-			mt_set_gpio_out(GPIO_NFC_VENB_PIN, GPIO_OUT_ONE);
-			mdelay( 200);
-
-			retVal = SerialFlash_DisableWDT();
-						
-			mt_set_gpio_out(GPIO_NFC_VENB_PIN, GPIO_OUT_ZERO);
-			mdelay( 200);
-			msr3110_dev_irq_pin_ctrl( NFC_IRQ_PIN_CTRL_PULL_HIGH);
-			msr3110_dev_irq_pin_ctrl( NFC_IRQ_PIN_CTRL_IRQ_MODE);			
-						
-			break;
-						
-			break;
-
 		case MSR3110_IOCTL_ISP_READ_REG:
 			my_pr_debug( "%s MSR3110_IOCTL_ISP_READ_REG ", __func__); 
 			ispInfo = ( msr3110_isp_info *)arg;
@@ -1460,45 +1383,6 @@ void msr3110_dev_irq_handler(void)
 
 
 
-static void msr3110_dev_irq_pin_ctrl( u8 IrqPinMode)
-{
-	FUNC_START();
-	
-	switch( IrqPinMode)
-	{
-		case NFC_IRQ_PIN_CTRL_IRQ_MODE:
-			mt_set_gpio_mode( GPIO_IRQ_NFC_PIN, GPIO_IRQ_NFC_PIN_M_EINT);
-			mt_set_gpio_dir( GPIO_IRQ_NFC_PIN, GPIO_DIR_IN);
-			mt_set_gpio_pull_enable( GPIO_IRQ_NFC_PIN, GPIO_PULL_ENABLE);
-			mt_set_gpio_pull_select( GPIO_IRQ_NFC_PIN, GPIO_PULL_UP);
-
-			mt65xx_eint_set_sens(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_SENSITIVE);
-			mt65xx_eint_set_hw_debounce(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_DEBOUNCE_CN);
-			mt65xx_eint_registration(CUST_EINT_EXT_IRQ_NFC_NUM, CUST_EINT_EXT_IRQ_NFC_DEBOUNCE_EN, CUST_EINT_EXT_IRQ_NFC_POLARITY, msr3110_dev_irq_handler, 0);
-			mt65xx_eint_mask( CUST_EINT_EXT_IRQ_NFC_NUM);
-	
-			break;
-		case NFC_IRQ_PIN_CTRL_PULL_HIGH:
-			mt_set_gpio_mode( GPIO_IRQ_NFC_PIN, GPIO_IRQ_NFC_PIN_M_GPIO);
-			mt_set_gpio_dir( GPIO_IRQ_NFC_PIN, GPIO_DIR_OUT);
-			mt_set_gpio_out( GPIO_IRQ_NFC_PIN, GPIO_OUT_ONE);
-
-			break;
-		case NFC_IRQ_PIN_CTRL_PULL_LOW:
-			mt_set_gpio_mode( GPIO_IRQ_NFC_PIN, GPIO_IRQ_NFC_PIN_M_GPIO);
-			mt_set_gpio_dir( GPIO_IRQ_NFC_PIN, GPIO_DIR_OUT);
-			mt_set_gpio_out( GPIO_IRQ_NFC_PIN, GPIO_OUT_ZERO);
-
-			break;
-		default:
-			my_pr_err( "%s FAIL unknown irq pin mode", __func__);
-			break;
-	}
-
-	FUNC_END();		
-}
-
-
 static int __init msr3110_dev_init(void)
 {
 	int retVal = 0;
@@ -1559,11 +1443,6 @@ static int __init msr3110_dev_init(void)
 	// GPIO Initial: IRQ	
 
 #if 1 // 0: ROM mode 
-
-
-	msr3110_dev_irq_pin_ctrl( NFC_IRQ_PIN_CTRL_IRQ_MODE);
-
-	#if 0
 	my_pr_debug( "%s mt_get_gpio_mode(%d): %d", __func__, GPIO_IRQ_NFC_PIN_M_EINT, mt_get_gpio_mode(GPIO_IRQ_NFC_PIN));
 	my_pr_debug( "%s mt_get_gpio_dir(%d): %d", __func__, GPIO_DIR_IN, mt_get_gpio_dir(GPIO_IRQ_NFC_PIN));
 	my_pr_debug( "%s mt_get_gpio_pull_enable(%d): %d", __func__, GPIO_PULL_ENABLE, mt_get_gpio_pull_enable(GPIO_IRQ_NFC_PIN));
@@ -1590,18 +1469,17 @@ static int __init msr3110_dev_init(void)
 	my_pr_debug( "%s 2. mt_get_gpio_dir(%d): %d", __func__, GPIO_DIR_IN, mt_get_gpio_dir(GPIO_IRQ_NFC_PIN));
 	my_pr_debug( "%s 2. mt_get_gpio_pull_enable(%d): %d", __func__, GPIO_PULL_ENABLE, mt_get_gpio_pull_enable(GPIO_IRQ_NFC_PIN));
 	my_pr_debug( "%s 2. mt_get_gpio_pull_select(%d): %d", __func__, GPIO_PULL_UP, mt_get_gpio_pull_select(GPIO_IRQ_NFC_PIN));
-#endif
+	
 
 	
 #else 
-
-	msr3110_dev_irq_pin_ctrl( NFC_IRQ_PIN_CTRL_PULL_LOW);
-	#if 0
 	mt_set_gpio_mode( GPIO_IRQ_NFC_PIN, GPIO_IRQ_NFC_PIN_M_GPIO);
 	mt_set_gpio_dir( GPIO_IRQ_NFC_PIN, GPIO_DIR_OUT);
-	mt_set_gpio_out( GPIO_IRQ_NFC_PIN, GPIO_OUT_ZERO);
-#endif
 
+	//mt_set_gpio_out( GPIO_IRQ_NFC_PIN, GPIO_OUT_ZERO);
+
+	mt_set_gpio_mode( GPIO_NFC_EINT_PIN, GPIO_NFC_EINT_PIN_M_GPIO);
+	mt_set_gpio_dir( GPIO_NFC_EINT_PIN, GPIO_DIR_OUT);
 #endif
 
 	// GPIO Initial: VEN	

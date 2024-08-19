@@ -1,7 +1,7 @@
 /*****************************************************************************
  *
  * Filename:
- * ---------
+ * ---------cust
  *    mt6320_battery_bq24156.c
  *
  * Project:
@@ -92,6 +92,7 @@ const unsigned int BATTERY_DRIVER_GPT = GPT5;
 
 const char POWER_BATTERY_TAG[] = "Power/Battery";
 
+
 /**********************************************************
   *
   *   [Constant Value]
@@ -117,23 +118,6 @@ int battery_cmd_thermal_test_mode_value=0;
 int g_battery_tt_check_flag=0; // 0:default enable check batteryTT, 1:default disable check batteryTT
 
 const int BQ24156_TT_SHUTDOWN_THREAHOLD = 60;
-
-////////////////////////////////////////////////////////////////////////////////
-// JEITA 
-////////////////////////////////////////////////////////////////////////////////
-#if defined(MTK_JEITA_STANDARD_SUPPORT)  
-int g_jeita_recharging_voltage=4110;
-kal_uint32 gFGsyncTimer_jeita=0;
-kal_uint32 g_default_sync_time_out_jeita=CUST_SOC_JEITA_SYNC_TIME; 
-int g_temp_status=TEMP_POS_10_TO_POS_45;
-kal_bool temp_error_recovery_chr_flag=KAL_TRUE;
-int mtk_jeita_support_flag=1;
-
-int g_last_temp_status=TEMP_POS_10_TO_POS_45;
-int battery_temprange_change_flag=0;
-#else
-int mtk_jeita_support_flag=0;
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //// PMIC AUXADC Related APIs
@@ -901,11 +885,7 @@ static void mt6320_battery_update(struct mt6320_battery_data *bat_data)
         if ( BMT_status.bat_exist )                
         {
             /* Battery Full */
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-            if ( (BMT_status.bat_vol >= g_jeita_recharging_voltage) && (BMT_status.bat_full == KAL_TRUE) )
-#else
             if ( (BMT_status.bat_vol >= RECHARGING_VOLTAGE) && (BMT_status.bat_full == KAL_TRUE) )
-#endif    
             {
                 /*Use no gas gauge*/
                 if( gForceADCsolution == 1 )
@@ -924,23 +904,8 @@ static void mt6320_battery_update(struct mt6320_battery_data *bat_data)
                 else
                 {                    
                     gSyncPercentage=1;
-					gSyncPercentageStatus=1;
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-                    //increase after xxs
-                    if(gFGsyncTimer_jeita >= g_default_sync_time_out_jeita)
-                    {
-                        gFGsyncTimer_jeita=0;
-                        bat_volt_check_point++;
-                    }
-                    else
-                    {
-                        gFGsyncTimer_jeita+=10;
-                        xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[Battery] In JEITA (%d on %d)\r\n", 
-                            bat_volt_check_point, gFGsyncTimer_jeita);
-                    }
-#else                    
+					gSyncPercentageStatus=1;                 
                     bat_volt_check_point++;
-#endif                    
                     if(bat_volt_check_point>=100)
                     {
                         bat_volt_check_point=100;
@@ -1538,8 +1503,10 @@ kal_bool pmic_chrdet_status(void)
 //// External charger
 ///////////////////////////////////////////////////////////////////////////////////////////
 int temp_init_flag = 0;
+#if !defined(MTK_KERNEL_POWER_OFF_CHARGING)
 int boot_soc_temp=0;
 int boot_soc_temp_count=0;
+#endif
 int boot_check_once=1;
 
 #ifndef MTK_BQ24156_NO_CD_GPIO
@@ -1567,13 +1534,13 @@ void select_charging_current_bcct(void)
         if (g_bcct_value < 100) {
             g_temp_CC_value = Cust_CC_0MA;
         } else if(g_bcct_value < 325) {
-            g_temp_CC_value = Cust_CC_100MA;
+            g_temp_CC_value = Cust_CC_200MA;
         } else if(g_bcct_value < 500) {
-            g_temp_CC_value = Cust_CC_450MA;
+            g_temp_CC_value = Cust_CC_650MA;
         } else if(g_bcct_value == 500) {
-            g_temp_CC_value = Cust_CC_500MA;
+            g_temp_CC_value = Cust_CC_650MA;
         } else {
-            g_temp_CC_value = Cust_CC_500MA;
+            g_temp_CC_value = Cust_CC_650MA;
        }
         	  
         bq24156_set_ac_current();    	  
@@ -1589,19 +1556,19 @@ void select_charging_current_bcct(void)
         }
         else if(g_bcct_value < 325)
         {
-            g_temp_CC_value = Cust_CC_100MA;
+            g_temp_CC_value = Cust_CC_200MA;
         }
         else if(g_bcct_value < 500)
         {
-            g_temp_CC_value = Cust_CC_450MA;
+            g_temp_CC_value = Cust_CC_650MA;
         }
         else if(g_bcct_value < 550)
         {
-            g_temp_CC_value = Cust_CC_500MA;
+            g_temp_CC_value = Cust_CC_650MA;
         }
         else if(g_bcct_value < 650)        
         {
-            g_temp_CC_value = Cust_CC_550MA;
+            g_temp_CC_value = Cust_CC_650MA;
         }        
         else if(g_bcct_value < 750)
         {
@@ -1609,23 +1576,23 @@ void select_charging_current_bcct(void)
         }    
         else if(g_bcct_value < 850)        
         {
-            g_temp_CC_value = Cust_CC_800MA;
+            g_temp_CC_value = Cust_CC_1000MA;
         }           
         else if(g_bcct_value < 950)        
         {
-            g_temp_CC_value = Cust_CC_900MA;
+            g_temp_CC_value = Cust_CC_1000MA;
         }             
         else if(g_bcct_value < 1050)        
         {
-            g_temp_CC_value = Cust_CC_1000MA;
+            g_temp_CC_value = Cust_CC_1200MA;
         }            
         else if(g_bcct_value < 1150)        
         {
-            g_temp_CC_value = Cust_CC_1100MA;
+            g_temp_CC_value = Cust_CC_1200MA;
         }        
         else if(g_bcct_value < 1250)        
         {
-            g_temp_CC_value = Cust_CC_1200MA;
+            g_temp_CC_value = Cust_CC_1300MA;
         }          
         else if(g_bcct_value < 1350)        
         {
@@ -1633,21 +1600,13 @@ void select_charging_current_bcct(void)
         }         
         else if(g_bcct_value < 1450)        
         {
-            g_temp_CC_value = Cust_CC_1400MA;
+            g_temp_CC_value = Cust_CC_1300MA;
         }         
-        else if(g_bcct_value < 1550)        
-        {
-            g_temp_CC_value = Cust_CC_1500MA;
-        }         
-        else
-        {
-            g_temp_CC_value = Cust_CC_1550MA;
-        }             	
         //---------------------------------------------------
     }
     else
     {
-        g_temp_CC_value = Cust_CC_500MA;
+        g_temp_CC_value = Cust_CC_650MA;
     } 
 
     bq24156_set_ac_current(); 
@@ -1725,7 +1684,7 @@ void ChargerHwInit_bq24156(void)
     mt_set_gpio_out(gpio_number,gpio_on_out);
 #endif
     
-    /* enable Safety limit register reset */    
+    /* enable Safety limit register reset */
     mt_set_gpio_mode(GPIO_OTG_DRVVBUS_PIN,GPIO_MODE_GPIO);  
     mt_set_gpio_dir(GPIO_OTG_DRVVBUS_PIN,GPIO_DIR_OUT);
     mt_set_gpio_out(GPIO_OTG_DRVVBUS_PIN,GPIO_OUT_ONE);
@@ -1766,10 +1725,6 @@ void bq24156_set_ac_current(void)
     switch (g_temp_CC_value) {
         case Cust_CC_1600MA:
             reg_set_value = 0xA; //BQ24156 maximum is 1.55A, p.29, table 7
-            bq24156_set_input_charging_current(0x3); // no input limit
-            break;
-        case Cust_CC_1550MA:
-            reg_set_value = 0xA; //1550mA
             bq24156_set_input_charging_current(0x3); // no input limit
             break;
         case Cust_CC_1500MA:
@@ -1813,10 +1768,6 @@ void bq24156_set_ac_current(void)
             reg_set_value = 0x0; //550mA
             bq24156_set_input_charging_current(0x2); // 800mA input limit
             break;
-        case Cust_CC_500MA:
-            reg_set_value = 0x0; //550mA
-            bq24156_set_input_charging_current(0x1); // 500mA input limit
-            break;
         case Cust_CC_450MA:
         case Cust_CC_400MA:
             /* LOW_CHG=1, get lowest current 325mA, p.30 */
@@ -1824,12 +1775,7 @@ void bq24156_set_ac_current(void)
             low_chg = 1;
             bq24156_set_input_charging_current(0x1); // 500mA input limit
             break;
-        case Cust_CC_200MA:
-        case Cust_CC_100MA:
-            reg_set_value = 0x0; //550mA
-            low_chg = 1; /* LOW_CHG=1, get lowest current 325mA, p.30 */
-            bq24156_set_input_charging_current(0x0); // 100mA input limit
-            break;                        
+        case Cust_CC_200MA:                    
         case Cust_CC_70MA:
             /* current too low, disable charger */
             xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG, "[BATTERY:bq24156] current(%d) too low current, disable charger\r\n", g_temp_CC_value);
@@ -1848,15 +1794,6 @@ void bq24156_set_ac_current(void)
             return;
             break;
     }
-
-#if defined(MTK_JEITA_STANDARD_SUPPORT)        
-    if(g_temp_status == TEMP_NEG_10_TO_POS_0)
-    {    
-        /* JEITA spec is 200mA when T under 0C */
-        reg_set_value= 0x0; //lowest possible charge current for bq24156 is 325mA
-        low_chg = 1;
-    }
-#endif
 
     /* issue I2C command to BQ24156 */
     if (low_chg)
@@ -1919,43 +1856,21 @@ void select_charging_current_bq24156(void)
             }
             else
             {    
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-                if (g_temp_status == TEMP_NEG_10_TO_POS_0)
-                {
-                    g_temp_CC_value = Cust_CC_200MA;
-                } 
-                else
-                {
-                    g_temp_CC_value = Cust_CC_500MA; //default current is 500MA    
-                }                         
-#else
                 g_temp_CC_value = USB_CHARGER_CURRENT;
                 if (Enable_BATDRV_LOG == 1) {
                     xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG,"[BATTERY:bq24156] use USB_CHARGER_CURRENT\r\n");    
                 }            
-#endif
             }
         } 
         else if (BMT_status.charger_type == NONSTANDARD_CHARGER) 
         {   
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-            if (g_temp_status == TEMP_NEG_10_TO_POS_0)
-            {
-                g_temp_CC_value = Cust_CC_200MA;
-            } 
-            else
-            {
-                g_temp_CC_value = AC_CHARGER_CURRENT;    
-            }                         
-#else   
             g_temp_CC_value = AC_CHARGER_CURRENT;
-#endif
             if (Enable_BATDRV_LOG == 1) {
                 xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG, "[BATTERY:bq24156] NONSTANDARD_CHARGER, use AC_CHARGER_CURRENT\r\n");
             }
         } 
         else if (BMT_status.charger_type == STANDARD_CHARGER) 
-        {
+        {               
             g_temp_CC_value = AC_CHARGER_CURRENT;
             if (Enable_BATDRV_LOG == 1) {
                 xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG, "[BATTERY:bq24156] STANDARD_CHARGER, use AC_CHARGER_CURRENT\r\n");
@@ -1977,31 +1892,6 @@ void select_charging_current_bq24156(void)
             bq24156_set_ac_current();
             return;
         }
-
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-        switch (g_temp_status) {
-        case TEMP_NEG_10_TO_POS_0:
-            bq24156_set_oreg(0x19);     /* 4.0V */
-            break;
-        
-        case TEMP_POS_0_TO_POS_10:
-        case TEMP_POS_45_TO_POS_60:
-            bq24156_set_oreg(0x1E);     /* 4.1V */
-            break;
-        
-        case TEMP_POS_10_TO_POS_45:
-        default:
-            if(g_enable_high_vbat_spec == 1)
-            {
-                bq24156_set_oreg(0x2B);     /* 4.36V */
-            }
-            else
-            {
-                bq24156_set_oreg(0x23);     /* 4.2V */
-            }
-            break;
-        } 
-#endif
 
         /* set final current decision */
         bq24156_set_ac_current();        
@@ -2073,9 +1963,9 @@ void pchr_turn_off_charging_bq24156 (void)
 #endif
 
     /* enable Safety limit register reset */    
-    mt_set_gpio_mode(GPIO_OTG_DRVVBUS_PIN,GPIO_MODE_GPIO);  
-    mt_set_gpio_dir(GPIO_OTG_DRVVBUS_PIN,GPIO_DIR_OUT);
-    mt_set_gpio_out(GPIO_OTG_DRVVBUS_PIN,GPIO_OUT_ONE);
+    mt_set_gpio_mode(GPIO_OTG_DRVVBUS_PIN,GPIO_MODE_GPIO); //Asus me173x dct correct gpio: 130
+    mt_set_gpio_dir(GPIO_OTG_DRVVBUS_PIN,GPIO_DIR_OUT);    //Asus me173x dct correct gpio: 130
+    mt_set_gpio_out(GPIO_OTG_DRVVBUS_PIN,GPIO_OUT_ONE);    //Asus me173x dct correct gpio: 130
     
     if (Enable_BATDRV_LOG == 1) {
         xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG, "%s\r\n", __FUNCTION__);
@@ -2277,101 +2167,6 @@ UINT32 BattVoltToPercent(UINT16 dwVoltage)
     
 }
 
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-int do_jeita_state_machine(void)
-{
-    //JEITA battery temp Standard 
-    if (BMT_status.temperature >= TEMP_POS_60_THRESHOLD) 
-    {
-        xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Over high Temperature(%d) !!\n\r", 
-            TEMP_POS_60_THRESHOLD);  
-        
-        g_temp_status = TEMP_ABOVE_POS_60;
-        
-        return PMU_STATUS_FAIL; 
-    }
-    else if(BMT_status.temperature > TEMP_POS_45_THRESHOLD)  //control 45c to normal behavior
-    {
-
-        if((g_temp_status == TEMP_ABOVE_POS_60) && (BMT_status.temperature >= TEMP_POS_60_THRES_MINUS_X_DEGREE))
-        {
-            xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Temperature between %d and %d,not allow charging yet!!\n\r",
-                TEMP_POS_60_THRES_MINUS_X_DEGREE,TEMP_POS_60_THRESHOLD); 
-            
-            return PMU_STATUS_FAIL; 
-        }
-        else
-        {
-            xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Temperature between %d and %d !!\n\r",
-                TEMP_POS_45_THRESHOLD,TEMP_POS_60_THRESHOLD); 
-            
-            g_temp_status = TEMP_POS_45_TO_POS_60;
-            g_jeita_recharging_voltage = 3980;   
-        }
-    }
-    else if(BMT_status.temperature >= TEMP_POS_10_THRESHOLD)
-    {
-        if( ((g_temp_status == TEMP_POS_45_TO_POS_60) && (BMT_status.temperature >= TEMP_POS_45_THRES_MINUS_X_DEGREE)) ||
-            ((g_temp_status == TEMP_POS_0_TO_POS_10 ) && (BMT_status.temperature <= TEMP_POS_10_THRES_PLUS_X_DEGREE ))      ) 
-        {
-            xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Temperature not recovery to normal temperature charging mode yet!!\n\r");     
-        }
-        else
-        {
-            if(Enable_BATDRV_LOG ==1)
-            {
-                xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[BATTERY] Battery Normal Temperature between %d and %d !!\n\r",
-                    TEMP_POS_10_THRESHOLD,TEMP_POS_45_THRESHOLD); 
-            }
-            g_temp_status = TEMP_POS_10_TO_POS_45;
-            g_jeita_recharging_voltage = 4080;
-        }
-    }
-    else if(BMT_status.temperature >= TEMP_POS_0_THRESHOLD)
-    {
-        if((g_temp_status == TEMP_NEG_10_TO_POS_0) && (BMT_status.temperature <= TEMP_POS_0_THRES_PLUS_X_DEGREE))
-        {
-            xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Temperature between %d and %d !!\n\r",
-                TEMP_POS_0_THRES_PLUS_X_DEGREE,TEMP_POS_10_THRESHOLD); 
-        }
-        else
-        {
-            xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Temperature between %d and %d !!\n\r",
-                TEMP_POS_0_THRESHOLD,TEMP_POS_10_THRESHOLD); 
-            
-            g_temp_status = TEMP_POS_0_TO_POS_10;
-            g_jeita_recharging_voltage = 3980;
-        }
-    }
-    else if(BMT_status.temperature >= TEMP_NEG_10_THRESHOLD)
-    {
-        if((g_temp_status == TEMP_BELOW_NEG_10) && (BMT_status.temperature <= TEMP_NEG_10_THRES_PLUS_X_DEGREE))
-        {
-            xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Temperature between %d and %d,not allow charging yet!!\n\r",
-                TEMP_NEG_10_THRESHOLD,TEMP_NEG_10_THRES_PLUS_X_DEGREE); 
-            
-            return PMU_STATUS_FAIL; 
-        }
-        else
-        {
-            xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery Temperature between %d and %d !!\n\r",
-                TEMP_NEG_10_THRESHOLD,TEMP_POS_0_THRESHOLD); 
-            
-            g_temp_status = TEMP_NEG_10_TO_POS_0;
-            g_jeita_recharging_voltage = 3780;
-        }
-    }
-    else
-    {
-        xlog_printk(ANDROID_LOG_WARN, "Power/Battery", "[BATTERY] Battery below low Temperature(%d) !!\n\r", 
-            TEMP_NEG_10_THRESHOLD);  
-        g_temp_status = TEMP_BELOW_NEG_10;
-        
-        return PMU_STATUS_FAIL; 
-    }
-}
-#endif
-
 int BAT_CheckBatteryStatus_bq24156(void)
 {
     int BAT_status = PMU_STATUS_OK;
@@ -2483,12 +2278,8 @@ int BAT_CheckBatteryStatus_bq24156(void)
                 
         /* User smooth View when discharging : start */
         if( upmu_is_chr_det() == KAL_FALSE )
-        {
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-            if (BMT_status.bat_vol >= g_jeita_recharging_voltage)
-#else        
+        {        
             if (BMT_status.bat_vol >= RECHARGING_VOLTAGE) 
-#endif                
             {
                 BMT_status.SOC = 100;    
                 BMT_status.bat_full = KAL_TRUE;
@@ -2624,6 +2415,7 @@ int BAT_CheckBatteryStatus_bq24156(void)
         /**************** Averaging : END ****************/
     }
 
+#if !defined(MTK_KERNEL_POWER_OFF_CHARGING)
     /* question: why need workaround? */
     //workaround--------------------------------------------------
     if( (gFG_booting_counter_I_FLAG < 2) && upmu_is_chr_det() )
@@ -2653,6 +2445,7 @@ int BAT_CheckBatteryStatus_bq24156(void)
         }       
     }    
     //------------------------------------------------------------
+#endif
     
     if (Enable_BATDRV_LOG == 1) {
         xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG, 
@@ -2685,18 +2478,7 @@ int BAT_CheckBatteryStatus_bq24156(void)
         xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[BATTERY] In thermal_test_mode 1, Tbat=%d\n", BMT_status.temperature);
     }
 
-    /* temperature check */    
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-    if (Enable_BATDRV_LOG == 1) {
-        xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[BATTERY] support JEITA, Tbat=%d\n", BMT_status.temperature);            
-    }
-    if( do_jeita_state_machine() == PMU_STATUS_FAIL)
-    {
-        printk(  "[BATTERY:bq24156] JEITA : fail\n");
-        BMT_status.bat_charging_state = CHR_ERROR; 
-        return PMU_STATUS_FAIL;
-    }
-#else    
+    /* temperature check */       
     #if (BAT_TEMP_PROTECT_ENABLE == 1)
     if ((BMT_status.temperature <= MIN_CHARGE_TEMPERATURE) || 
         (BMT_status.temperature == ERR_CHARGE_TEMPERATURE))
@@ -2712,7 +2494,6 @@ int BAT_CheckBatteryStatus_bq24156(void)
         BMT_status.bat_charging_state = CHR_ERROR;
         return PMU_STATUS_FAIL;       
     }
-#endif
 
     /* charger voltage check */
     if( upmu_is_chr_det() == KAL_TRUE)
@@ -2737,12 +2518,8 @@ int BAT_CheckBatteryStatus_bq24156(void)
 
     /* Recharging voltage check */
     if( upmu_is_chr_det() == KAL_TRUE)
-    {        
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-        if((BMT_status.bat_vol < g_jeita_recharging_voltage) && (BMT_status.bat_full) && (g_HW_Charging_Done == 1) && (!g_Battery_Fail) )    
-#else    
+    {          
         if((BMT_status.bat_vol < RECHARGING_VOLTAGE) && (BMT_status.bat_full) && (g_HW_Charging_Done == 1) && (!g_Battery_Fail) )    
-#endif /* MTK_JEITA_STANDARD_SUPPORT */
         {
             if (Enable_BATDRV_LOG == 1) {
                 xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG,
@@ -2787,19 +2564,6 @@ PMU_STATUS BAT_BatteryStatusFailAction(void)
     if (Enable_BATDRV_LOG == 1) {
         xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[BATTERY] BAD Battery status... Charging Stop !!\n\r");            
     }
-
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-    if((g_temp_status == TEMP_ABOVE_POS_60) ||(g_temp_status == TEMP_BELOW_NEG_10))
-    {
-        temp_error_recovery_chr_flag=KAL_FALSE;
-    }
-
-    if((temp_error_recovery_chr_flag==KAL_FALSE) && (g_temp_status != TEMP_ABOVE_POS_60) && (g_temp_status != TEMP_BELOW_NEG_10))
-    {
-        temp_error_recovery_chr_flag=KAL_TRUE;
-        BMT_status.bat_charging_state=CHR_PRE;
-    }
-#endif
 
     BAT_ResetBMTStatusChargingTime();
 
@@ -2857,7 +2621,7 @@ PMU_STATUS BAT_BatteryFullAction(void)
 
     /*  Disable charger */
     pchr_turn_off_charging_bq24156();
-        
+       
     return PMU_STATUS_OK;
 }
 
@@ -3010,28 +2774,6 @@ void mt_battery_notify_check(void)
 
 void check_battery_exist(void)
 {
-    /* TODO: confirm with Hoping about HW */
-#if 0
-    kal_uint32 baton_count = 0;
-
-    baton_count += upmu_get_rgs_baton_undet();
-    baton_count += upmu_get_rgs_baton_undet();
-    baton_count += upmu_get_rgs_baton_undet();
-        
-    if( baton_count >= 3)
-    {
-        if( (get_boot_mode()==META_BOOT) || (get_boot_mode()==ADVMETA_BOOT) || (get_boot_mode()==ATE_FACTORY_BOOT) )
-        {
-            printk("[BATTERY] boot mode = %d, bypass battery check\n", get_boot_mode());
-        }
-        else
-        {
-            printk("[BATTERY] Battery is not exist, power off bq24156 and system (%d)\n", baton_count);
-            pchr_turn_off_charging_bq24156();
-            arch_reset(0,NULL);      
-        }
-    }
-#else
     if (Enable_BATDRV_LOG == 1) {
         printk("[BATTERY] Disable check battery exist for SMT\n");
     }
@@ -3116,13 +2858,9 @@ void BAT_thread_bq24156(void)
 
     /* show criteria value */
     if (Enable_BATDRV_LOG == 1) {        
-#if defined(MTK_JEITA_STANDARD_SUPPORT)        
         xlog_printk(ANDROID_LOG_DEBUG, POWER_BATTERY_TAG, "[BATTERY_TOP] LOG. %d,%d,%d,%d,%d----------------------------\n", 
-            BATTERY_AVERAGE_SIZE, CHARGING_FULL_CURRENT, g_jeita_recharging_voltage, gFG_15_vlot, mtk_jeita_support_flag);
-#else
-        xlog_printk(ANDROID_LOG_DEBUG, POWER_BATTERY_TAG, "[BATTERY_TOP] LOG. %d,%d,%d,%d,%d----------------------------\n", 
-            BATTERY_AVERAGE_SIZE, CHARGING_FULL_CURRENT, RECHARGING_VOLTAGE, gFG_15_vlot, mtk_jeita_support_flag);
-#endif /* defined(MTK_JEITA_STANDARD_SUPPORT) */
+            //BATTERY_AVERAGE_SIZE, CHARGING_FULL_CURRENT, RECHARGING_VOLTAGE, gFG_15_vlot, mtk_jeita_support_flag);
+            BATTERY_AVERAGE_SIZE, CHARGING_FULL_CURRENT, RECHARGING_VOLTAGE, gFG_15_vlot);
     }    
 
     /* check thermal throttling mechanism */
@@ -3134,16 +2872,9 @@ void BAT_thread_bq24156(void)
         if(battery_cmd_thermal_test_mode == 1){
             BMT_status.temperature = battery_cmd_thermal_test_mode_value;
             printk("[Battery:TestMode] In thermal_test_mode, Tbat=%d\n", BMT_status.temperature);
-        }
-    
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-        //ignore default rule        
-#else    
+        }   
         if(BMT_status.temperature >= BQ24156_TT_SHUTDOWN_THREAHOLD)
         {
-#if defined(CONFIG_POWER_EXT)
-            xlog_printk(ANDROID_LOG_DEBUG, "Power/Battery", "[BATTERY] CONFIG_POWER_EXT, no update mt6320_battery_update_power_down.\n");
-#else
             xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[Battery] Tbat(%d)>=%d, system need power down.\n",
                 BMT_status.temperature, BQ24156_TT_SHUTDOWN_THREAHOLD);
 
@@ -3155,9 +2886,7 @@ void BAT_thread_bq24156(void)
             }
             //avoid SW no feedback
             mt_power_off();
-#endif /* defined(CONFIG_POWER_EXT) */
         }
-#endif /* defined(MTK_JEITA_STANDARD_SUPPORT) */
     }
 
     /* If charger exist, then get the charger type */    
@@ -3239,48 +2968,6 @@ void BAT_thread_bq24156(void)
         g_Battery_Fail = KAL_FALSE;
     }
     
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-    if(g_last_temp_status ==g_temp_status){
-        battery_temprange_change_flag=0;
-    }else{
-        battery_temprange_change_flag=1;
-    }  
-
-    if(battery_temprange_change_flag==1)    //if temperature range change, then reset cv threshold  Tim 20120803 report
-    {                    
-        if(g_temp_status == TEMP_NEG_10_TO_POS_0)
-        {
-            //for 4.0V CV threshold
-            bq24156_set_oreg(0x19); /* 4.0V */
-        }
-        else if(g_temp_status == TEMP_POS_10_TO_POS_45)
-        {            
-            //for 4.2V CV threshold
-            bq24156_set_oreg(0x23); /* 4.2V */
-        }
-        else if((g_temp_status == TEMP_POS_0_TO_POS_10)||(g_temp_status == TEMP_POS_45_TO_POS_60))
-        {     
-            //for 4.1V CV threshold
-            bq24156_set_oreg(0x1e); /* 4.1V */
-        }
-        else
-        {
-            if (g_enable_high_vbat_spec == 1)
-            {
-                //for 4.36V CV threshold
-                bq24156_set_oreg(0x2B);     /* 4.36V */
-            }
-            else
-            {
-                //for 4.2V CV threshold
-                bq24156_set_oreg(0x23);     /* 4.2V */
-            }
-        }
-    }
-#else
-    //ignore
-#endif /* MTK_JEITA_STANDARD_SUPPORT */
-
     /* same code already in BAT_CheckBatteryStatus_bq24156(), try to remove it? */
     if(battery_cmd_thermal_test_mode == 1){
         BMT_status.temperature = battery_cmd_thermal_test_mode_value;
@@ -3426,11 +3113,7 @@ void BAT_thread_bq24156(void)
         /* check battery full, 0x2 means charge done, p.28, table 3 */
         if( bq24156_status == BQ24156_STAT_CHARGE_DONE )
         {
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-            if(BMT_status.bat_vol > g_jeita_recharging_voltage + 70 )  //4
-#else    
             if(BMT_status.bat_vol > RECHARGING_VOLTAGE)
-#endif            
             {
                 xlog_printk(ANDROID_LOG_INFO, POWER_BATTERY_TAG, "[BATTERY:bq24156 Battery real full and disable charging (%d) \n", bq24156_status);
                 BAT_BatteryFullAction();
@@ -3455,10 +3138,6 @@ void BAT_thread_bq24156(void)
     }
 
     g_HW_stop_charging = 0;
-
-#if defined(MTK_JEITA_STANDARD_SUPPORT)
-    g_last_temp_status = g_temp_status;
-#endif
 
     if (Enable_BATDRV_LOG == 1) {
         bq24156_dump_register();
@@ -3690,33 +3369,6 @@ static long adc_cali_ioctl(struct file *file, unsigned int cmd, unsigned long ar
             }
             ret = copy_to_user(user_data_addr, battery_out_data, 4); 
             xlog_printk(ANDROID_LOG_DEBUG, "Power/Battery", "**** unlocked_ioctl : CAL:%d\n", battery_out_data[0]);                        
-            break;        
-
-        case Set_Charger_Current: /* For Factory Mode*/
-            user_data_addr = (int *)arg;
-            ret = copy_from_user(charging_level_data, user_data_addr, 4);
-            g_ftm_battery_flag = KAL_TRUE;            
-            if( charging_level_data[0] == 0 ) {                charging_level_data[0] = Cust_CC_70MA;
-            } else if ( charging_level_data[0] == 1  ) {    charging_level_data[0] = Cust_CC_200MA;
-            } else if ( charging_level_data[0] == 2  ) {    charging_level_data[0] = Cust_CC_400MA;
-            } else if ( charging_level_data[0] == 3  ) {    charging_level_data[0] = Cust_CC_450MA;
-            } else if ( charging_level_data[0] == 4  ) {    charging_level_data[0] = Cust_CC_550MA;
-            } else if ( charging_level_data[0] == 5  ) {    charging_level_data[0] = Cust_CC_650MA;
-            } else if ( charging_level_data[0] == 6  ) {    charging_level_data[0] = Cust_CC_700MA;
-            } else if ( charging_level_data[0] == 7  ) {    charging_level_data[0] = Cust_CC_800MA;
-            } else if ( charging_level_data[0] == 8  ) {    charging_level_data[0] = Cust_CC_900MA;
-            } else if ( charging_level_data[0] == 9  ) {    charging_level_data[0] = Cust_CC_1000MA;
-            } else if ( charging_level_data[0] == 10 ) {    charging_level_data[0] = Cust_CC_1100MA;
-            } else if ( charging_level_data[0] == 11 ) {    charging_level_data[0] = Cust_CC_1200MA;
-            } else if ( charging_level_data[0] == 12 ) {    charging_level_data[0] = Cust_CC_1300MA;
-            } else if ( charging_level_data[0] == 13 ) {    charging_level_data[0] = Cust_CC_1400MA;
-            } else if ( charging_level_data[0] == 14 ) {    charging_level_data[0] = Cust_CC_1500MA;
-            } else if ( charging_level_data[0] == 15 ) {    charging_level_data[0] = Cust_CC_1600MA;
-            } else { 
-                charging_level_data[0] = Cust_CC_450MA;
-            }
-            wake_up_bat();
-            xlog_printk(ANDROID_LOG_DEBUG, "Power/Battery", "**** unlocked_ioctl : set_Charger_Current:%d\n", charging_level_data[0]);
             break;
 
         case AVG_BAT_SEN_READ:
@@ -4458,7 +4110,7 @@ int battery_kthread_handler(void *unused)
     do
     {
         ktime = ktime_set(10, 0);	// 10s, 10* 1000 ms
-    
+   		
         wait_event_interruptible(battery_kthread_waiter, battery_kthread_flag != 0);
     
         battery_kthread_flag = 0;
@@ -4644,8 +4296,6 @@ static int mt6320_battery_probe(struct platform_device *dev)
 
     return 0;
 }
-
-#endif /* TODO: matching who? */
 
 static int mt6320_battery_remove(struct platform_device *dev)    
 {

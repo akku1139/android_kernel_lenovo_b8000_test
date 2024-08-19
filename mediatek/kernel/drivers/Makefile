@@ -2,17 +2,16 @@ include $(MTK_PATH_BUILD)/common.mk
 #$(call all-subdir-src-or-makefile)
 
 obj-y   +=  aee/
-obj-y   +=  ccci/
-obj-y   +=  dual_ccci/
+#obj-y   +=  ccci/
+#obj-y   +=  dual_ccci/
 obj-y   +=  fmradio/
 obj-y   +=  gps/
 obj-y   +=  hwmon/
 obj-y   +=  m4u/
 obj-y   +=  mhl/
 obj-y   +=  mtprof/
-obj-y   +=  sched/
 obj-y   +=  usb11/
-obj-y   +=  almk/
+#obj-y   +=  almk/
 ifneq ($(MTK_PROJECT), mt6589fpga_ca7_ldvt)
 obj-y   +=  video/
 endif

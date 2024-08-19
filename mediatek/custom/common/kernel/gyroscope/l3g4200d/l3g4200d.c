@@ -37,7 +37,6 @@
 #include <mach/mt_typedefs.h>
 #include <mach/mt_gpio.h>
 #include <mach/mt_pm_ldo.h>
-#include <mach/mt_boot.h>
 
 /*-------------------------MT6516&MT6573 define-------------------------------*/
 
@@ -788,13 +787,13 @@ static ssize_t show_status_value(struct device_driver *ddri, char *buf)
 
 static DRIVER_ATTR(chipinfo,             S_IRUGO, show_chipinfo_value,      NULL);
 static DRIVER_ATTR(sensordata,           S_IRUGO, show_sensordata_value,    NULL);
-static DRIVER_ATTR(trace,      S_IWUGO | S_IRUGO, show_trace_value,         store_trace_value);
+//static DRIVER_ATTR(trace,       S_IRUGO, show_trace_value,         store_trace_value);
 static DRIVER_ATTR(status,               S_IRUGO, show_status_value,        NULL);
 /*----------------------------------------------------------------------------*/
 static struct driver_attribute *L3G4200D_attr_list[] = {
 	&driver_attr_chipinfo,     /*chip information*/
 	&driver_attr_sensordata,   /*dump sensor data*/	
-	&driver_attr_trace,        /*trace log*/
+//	&driver_attr_trace,        /*trace log*/
 	&driver_attr_status,        
 };
 /*----------------------------------------------------------------------------*/
@@ -1295,7 +1294,7 @@ static int l3g4200d_i2c_probe(struct i2c_client *client, const struct i2c_device
 	
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-	obj->early_drv.level    = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 2,
+	obj->early_drv.level    = EARLY_SUSPEND_LEVEL_DISABLE_FB - 1,
 	obj->early_drv.suspend  = l3g4200d_early_suspend,
 	obj->early_drv.resume   = l3g4200d_late_resume,    
 	register_early_suspend(&obj->early_drv);
@@ -1382,9 +1381,8 @@ static struct platform_driver l3g4200d_gyro_driver = {
 /*----------------------------------------------------------------------------*/
 static int __init l3g4200d_init(void)
 {
-	struct gyro_hw *hw = get_cust_gyro_hw();
-	GYRO_LOG("%s: i2c_number=%d\n", __func__,hw->i2c_num); 
-	i2c_register_board_info(hw->i2c_num, &i2c_l3g4200d, 1);
+	GYRO_FUN();
+	i2c_register_board_info(3, &i2c_l3g4200d, 1);
 	if(platform_driver_register(&l3g4200d_gyro_driver))
 	{
 		GYRO_ERR("failed to register driver");

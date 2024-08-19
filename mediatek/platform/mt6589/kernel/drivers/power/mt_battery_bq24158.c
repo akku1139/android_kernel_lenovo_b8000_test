@@ -1922,6 +1922,20 @@ void select_charging_curret_bq24158(void)
                 }                       
 #else            
                 bq24158_config_interface_reg(0x01,0x78);
+	        //++++++++++++++++++++++add code here++++++++++++++++++++++++++++++++++
+		if(g_enable_high_vbat_spec == 1)
+		{
+		if(g_pmic_cid == 0x1020)
+		bq24158_config_interface_reg(0x02,0x8E);
+		else
+		bq24158_config_interface_reg(0x02,0xaa);
+		}
+		else
+		bq24158_config_interface_reg(0x02,0x8E); //for 4.2v CV threshold 
+		
+		bq24158_config_interface_reg(0x05,0x04);
+		
+		//++++++++++++++++++++++add code here++++++++++++++++++++++++++++++++++          
 #endif                
                 if (Enable_BATDRV_LOG == 1) {
                     printk("[BATTERY:bq24158] bq24158_config_interface_reg(0x01,0x78); 2\r\n");    
@@ -2059,7 +2073,7 @@ void pchr_turn_off_charging_bq24158 (void)
             printk("[BATTERY] pchr_turn_off_charging_bq24158 !\r\n");
         }
 
-        bq24158_config_interface_reg(0x01,0x78);      //0xbc->ox78 for CE=0 according to BQ24158 IC design notes and pre-charging could be limited to 500mA
+        bq24158_config_interface_reg(0x01,0xbc);    
         
 #if defined(CONFIG_USB_MTK_HDRC_HCD)
     }
@@ -2688,14 +2702,16 @@ int BAT_CheckBatteryStatus_bq24158(void)
     if ((BMT_status.temperature < MIN_CHARGE_TEMPERATURE) || 
         (BMT_status.temperature == ERR_CHARGE_TEMPERATURE))
     {
-        printk(  "[BATTERY] Battery Under Temperature or NTC fail !!\n\r");                
+        printk(  "[BATTERY] Battery Under Temperature or NTC fail !!\n\r");     
+        BMT_status.charger_protect_status = BATTERY_OVER_TEMP;//加上这句话           
         BMT_status.bat_charging_state = CHR_ERROR;
         return PMU_STATUS_FAIL;       
     }
     #endif            
     if (BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
     {
-        printk(  "[BATTERY] Battery Over Temperature !!\n\r");                
+        printk(  "[BATTERY] Battery Over Temperature !!\n\r");   
+        BMT_status.charger_protect_status = BATTERY_OVER_TEMP;//加上这句话             
         BMT_status.bat_charging_state = CHR_ERROR;
         return PMU_STATUS_FAIL;       
     }
@@ -2776,6 +2792,20 @@ PMU_STATUS BAT_BatteryStatusFailAction(void)
 
     /*  Disable charger */
     pchr_turn_off_charging_bq24158();
+
+ if ((BMT_status.temperature <= (MAX_CHARGE_TEMPERATURE - 5)) &&     // 小于MAX_CHARGE_TEMPERATURE-5以及高于MIN_CHARGE_TEMPERATURE+5的时候恢复充电
+    (BMT_status.temperature >= (MIN_CHARGE_TEMPERATURE + 5))&&
+    (BMT_status.temperature != ERR_CHARGE_TEMPERATURE)&&
+    (BMT_status.charger_protect_status == BATTERY_OVER_TEMP))
+   {
+    BMT_status.bat_charging_state = CHR_PRE;
+    BMT_status.charger_protect_status = 0;
+        if (Enable_BATDRV_LOG == 1) 
+       {
+       // printf(  "[BATTERY] temperture in range... start charging again!!\n\r");
+      }
+ }
+
 
     return PMU_STATUS_OK;
 }
@@ -3045,8 +3075,9 @@ void BAT_thread_bq24158(void)
     int i=0;
     int BAT_status = 0;
     //kal_uint32 tmp32;
+     int ret_val=0;
 #if !defined(MTK_KERNEL_POWER_OFF_CHARGING)	
-    int ret_val=0;
+   
 
     if(boot_check_once==1)
     {
@@ -4280,7 +4311,7 @@ int charger_hv_detect_sw_thread_handler(void *unused)
 
         if ((upmu_is_chr_det() == KAL_TRUE))
         {
-            check_battery_exist();
+            //check_battery_exist();
         }
     
         charger_hv_detect_flag = 0;

@@ -1599,8 +1599,7 @@ void CECMWSetLA(CEC_LA_ADDRESS* prLA)
 	{
 		return ;
 	}
-
-	cecMwTxMsg.txtag = NULL;
+	
 	cecMwTxMsg.blocks.header.initiator = msg->t_frame_info.ui1_init_addr;
 	cecMwTxMsg.blocks.header.destination = msg->t_frame_info.ui1_dest_addr;
 	cecMwTxMsg.sendidx = 0;

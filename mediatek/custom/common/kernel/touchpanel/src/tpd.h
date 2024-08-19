@@ -51,7 +51,7 @@
 //#include "tpd_custom.h"
 
 /* debug macros */
-////#define TPD_DEBUG
+#define TPD_DEBUG
 #define TPD_DEBUG_CODE
 //#define TPD_DEBUG_TRACK
 #define TPD_DMESG(a,arg...) printk(TPD_DEVICE ": " a,##arg)

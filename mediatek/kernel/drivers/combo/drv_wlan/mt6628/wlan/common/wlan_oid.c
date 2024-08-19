@@ -5754,13 +5754,6 @@ wlanoidSetSwCtrlWrite (
             else if(u2SubId == 0x5) {
                 prAdapter->rWifiVar.rConnSettings.uc2G4BandwidthMode = (UINT_8)u4Data;
             }
-            else if(u2SubId == 0x0100) {
-                prAdapter->rWifiVar.u8SupportRxGf = (UINT_8)u4Data;
-            }
-            else if(u2SubId == 0x0101) {
-                prAdapter->rWifiVar.u8SupportRxSgi20 = (UINT_8)u4Data;
-                prAdapter->rWifiVar.u8SupportRxSgi40 = (UINT_8)u4Data;
-            }
 
 
             break;

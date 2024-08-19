@@ -796,7 +796,7 @@ static int brightness_set_pmic(enum mt65xx_led_pmic pmic_type, u32 level, u32 di
 			
 			if (level) 
 			{
-				upmu_set_kpled_dim_duty(0x9);
+				upmu_set_kpled_dim_duty(0x1);
 				upmu_set_kpled_en(0x1);
 			}
 			else 
@@ -1206,23 +1206,6 @@ static int mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level)
 			if(strcmp(cust->name,"lcd-backlight") == 0)
 			{
 				bl_brightness = level;
-
-				#ifdef CONTROL_BL_TEMPERATURE
-				mutex_lock(&bl_level_limit_mutex);
-				current_level = level;
-				//printk("brightness_set_cust:current_level=%d\n", current_level);
-				if(0 == limit_flag){
-					last_level = level;
-				//printk("brightness_set_cust:last_level=%d\n", last_level);
-				}else {
-					if(limit < current_level){
-						level = limit;
-						printk("backlight_set_cust: control level=%d\n", level);
-					}
-				}	
-				mutex_unlock(&bl_level_limit_mutex);
-				#endif
-			
 				if(level == 0)
 				{
 					//mt_set_pwm_disable(cust->data);

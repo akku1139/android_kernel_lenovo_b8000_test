@@ -1342,6 +1342,8 @@ inline static int  adopt_CAMERA_HW_FeatureControl(void *pBuf)
         case SENSOR_FEATURE_GET_DEFAULT_FRAME_RATE_BY_SCENARIO:
         case SENSOR_FEATURE_AUTOTEST_CMD:	
         case SENSOR_FEATURE_GET_AE_FLASHLIGHT_INFO:
+		case SENSOR_FEATURE_SET_TEST_PATTERN:
+		case SENSOR_FEATURE_GET_TEST_PATTERN_CHECKSUM_VALUE:	
             //
             if(copy_from_user((void*)pFeaturePara , (void *) pFeatureCtrl->pFeaturePara, FeatureParaLen)) {
                 kfree(pFeaturePara);
@@ -1476,6 +1478,8 @@ inline static int  adopt_CAMERA_HW_FeatureControl(void *pBuf)
         case SENSOR_FEATURE_CHECK_SENSOR_ID:
         case SENSOR_FEATURE_GET_DEFAULT_FRAME_RATE_BY_SCENARIO:
         case SENSOR_FEATURE_GET_AE_FLASHLIGHT_INFO:	
+		case SENSOR_FEATURE_SET_TEST_PATTERN:
+		case SENSOR_FEATURE_GET_TEST_PATTERN_CHECKSUM_VALUE:
             //
             if(copy_to_user((void __user *) pFeatureCtrl->pFeaturePara, (void*)pFeaturePara , FeatureParaLen)) {
                 kfree(pFeaturePara);

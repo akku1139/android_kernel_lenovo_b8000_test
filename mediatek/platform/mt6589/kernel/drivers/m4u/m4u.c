@@ -1,3 +1,38 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors:
+ * any reproduction, modification, use or disclosure of MediaTek Software:
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES:
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE:
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE:
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
+
 #include <linux/uaccess.h>
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -272,6 +307,7 @@ static volatile unsigned int FreeWrapRegs[TOTAL_M4U_NUM]= {M4U_WRAP_NR, M4U_WRAP
 
 
 unsigned int m4u_index_of_larb[SMI_LARB_NR] = {0,0,0,0,1};
+unsigned int m4u_index_of_larb5 = 0,  m4u_index_of_larb6 = 1;
 unsigned int smi_port0_in_larbx[SMI_LARB_NR+1] = {0, 10, 17, 29, 44 ,56};
 unsigned int m4u_port0_in_larbx[SMI_LARB_NR+1] = {0, 10, 17, 29, 43 ,53};
 unsigned int m4u_port_size_limit[M4U_PORT_NR] = {};
@@ -706,6 +742,9 @@ static int MTK_M4U_open(struct inode * a_pstInode, struct file * a_pstFile)
     return 0;
 }
 
+extern int m4u_reclaim_mva_callback_ovl(int moduleID, unsigned int va, unsigned int size, unsigned int mva);
+
+
 static int MTK_M4U_release(struct inode * a_pstInode, struct file * a_pstFile)
 {
     struct list_head *pListHead, *ptmp;
@@ -742,6 +781,9 @@ static int MTK_M4U_release(struct inode * a_pstInode, struct file * a_pstFile)
         if(pList->mvaStart != 0)        
         {
             int ret;
+            
+            m4u_reclaim_mva_callback_ovl(pList->eModuleId, pList->bufAddr, pList->size, pList->mvaStart);
+
             ret = m4u_dealloc_mva(pList->eModuleId, pList->bufAddr, pList->size, pList->mvaStart);
             if(ret)
                 m4u_free_garbage_list(pList);
@@ -4341,7 +4383,9 @@ int m4u_hw_init(void)
             |F_SMI_BUS_SEL_larb1(larb_2_m4u_id(1))  \
             |F_SMI_BUS_SEL_larb2(larb_2_m4u_id(2))  \
             |F_SMI_BUS_SEL_larb3(larb_2_m4u_id(3))  \
-            |F_SMI_BUS_SEL_larb4(larb_2_m4u_id(4))  ;
+            |F_SMI_BUS_SEL_larb4(larb_2_m4u_id(4))  \
+            |F_SMI_BUS_SEL_larb5(m4u_index_of_larb5)  \
+            |F_SMI_BUS_SEL_larb6(m4u_index_of_larb6)  ;
 
     M4UDBG("regval = 0x%x\n", regval);
 
@@ -4442,7 +4486,7 @@ int m4u_hw_init(void)
                 |F_MMU_CTRL_MONITOR_CLR(0)     \
                 |F_MMU_CTRL_PFH_RT_RPL_MODE(0) \
                 |F_MMU_CTRL_TF_PROT_VAL(2)    \
-                |F_MMU_CTRL_COHERE_EN(1)       ;
+                |F_MMU_CTRL_COHERE_EN(0)       ;
         
         if(g_debug_enable_error_hang)
             regval |= F_MMU_CTRL_INT_HANG_en(1);
