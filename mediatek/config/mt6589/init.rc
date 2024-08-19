@@ -27,15 +27,15 @@ on early-init
 
 on early_property:ro.build.type=user
     write /proc/bootprof "INIT: user build setting"
-    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/telephony-common.jar:/system/framework/mms-common.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/mediatek-common.jar:/system/framework/mediatek-framework.jar:/system/framework/mediatek-op.jar:/system/framework/secondary-framework.jar:/system/framework/CustomProperties.jar
+    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/telephony-common.jar:/system/framework/mms-common.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/mediatek-common.jar:/system/framework/mediatek-framework.jar:/system/framework/mediatek-op.jar:/system/framework/secondary-framework.jar:/system/framework/CustomProperties.jar:/system/framework/dolby_ds.jar
 
 on early_property:ro.build.type=userdebug
     write /proc/bootprof "INIT: userdebug build setting"
-    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/telephony-common.jar:/system/framework/mms-common.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/mediatek-common.jar:/system/framework/mediatek-framework.jar:/system/framework/mediatek-op.jar:/system/framework/secondary-framework.jar:/system/framework/CustomProperties.jar
+    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/telephony-common.jar:/system/framework/mms-common.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/mediatek-common.jar:/system/framework/mediatek-framework.jar:/system/framework/mediatek-op.jar:/system/framework/secondary-framework.jar:/system/framework/CustomProperties.jar:/system/framework/dolby_ds.jar
 
 on early_property:ro.build.type=eng
     write /proc/bootprof "INIT: eng build setting"
-    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/telephony-common.jar:/system/framework/mms-common.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/mediatek-common.jar:/system/framework/mediatek-framework.jar:/system/framework/mediatek-op.jar:/system/framework/secondary-framework.jar:/system/framework/CustomProperties.jar:/system/framework/emma.jar
+    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/telephony-common.jar:/system/framework/mms-common.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/mediatek-common.jar:/system/framework/mediatek-framework.jar:/system/framework/mediatek-op.jar:/system/framework/secondary-framework.jar:/system/framework/CustomProperties.jar:/system/framework/emma.jar:/system/framework/dolby_ds.jar
 
 on early_property:ro.hardware=mt6589
     setprop ro.mtk.hardware mt6589
@@ -461,9 +461,10 @@ on post-fs-data
 
     mkdir /data/amit/ 0770 system system
     mkdir /data/misc/sensors 0664 system system
-    mkdir /data/misc/akmd 0664 system system
+    mkdir /data/misc/akmd 0777 system system
+    mkdir /data/misc/s62x 0771 compass compass
 
-    mkdir /data/acdapi/ 0770 system system
+    mkdir /data/misc/acdapi/ 0770 system system
     chmod 0666 /data/misc/acdapi/calib.dat
     chmod 0666 /data/misc/acdapi/param.dat
     chmod 0666 /data/misc/acdapi/sensors.dat
@@ -479,6 +480,11 @@ on post-fs-data
     chown system /sys/devices/platform/msensor/driver/cpsopmode
     chown system /sys/devices/platform/msensor/driver/cpsreptxy
     chown system /sys/devices/platform/msensor/driver/cpsreptz
+    # MC6420
+    mkdir /data/data/mcube 0664 system system
+
+
+    chmod 0777 /data/misc/akmd
 
     # GPIO
     chmod 0664 /dev/mtgpio
@@ -543,6 +549,10 @@ on post-fs-data
     chmod 0444 /dev/devmap
     chown root media /dev/devmap
 
+    # BT relayer mode used VCOM
+    chown bluetooth radio /dev/ttyGS2
+    chmod 0660 /dev/ttyGS2
+
     # bluetooth
     mkdir /data/@btmtk 0770 bluetooth net_bt
     chown bluetooth bluetooth /dev/hid-keyboard
@@ -578,6 +588,12 @@ on post-fs-data
     chmod 0660 /dev/kd_camera_flashlight
     chmod 0660 /dev/kd_camera_hw_bus2
     chmod 0660 /dev/FM50AF
+    chmod 0660 /dev/OV8825AF
+    chmod 0660 /dev/OV12830AF
+    chmod 0660 /dev/OV5647AF
+    chmod 0660 /dev/A5142AF
+    chmod 0660 /dev/AR0833AF
+    chmod 0660 /dev/IMX111AF
     chmod 0660 /dev/CAM_CAL_DRV
 
     chown system camera /dev/camera-sysram
@@ -587,6 +603,12 @@ on post-fs-data
     chown system camera /dev/kd_camera_flashlight
     chown system camera /dev/kd_camera_hw_bus2
     chown system camera /dev/FM50AF
+    chown system camera /dev/OV8825AF
+    chown system camera /dev/OV12830AF
+    chown system camera /dev/OV5647AF
+    chown system camera /dev/A5142AF
+    chown system camera /dev/AR0833AF
+    chown system camera /dev/IMX111AF
     chown system camera /dev/CAM_CAL_DRV
 
     #MATV
@@ -645,8 +667,8 @@ on boot
     chmod 0664 /sys/module/lowmemorykiller/parameters/minfree
 
     # Tweak background writeout
-    write /proc/sys/vm/dirty_expire_centisecs 200
-    write /proc/sys/vm/dirty_writeback_centisecs 300
+    write /proc/sys/vm/dirty_expire_centisecs 500
+    write /proc/sys/vm/dirty_writeback_centisecs 1000
     write /proc/sys/vm/dirty_background_ratio  5
 
     # Permissions for System Server and daemons.
@@ -737,6 +759,9 @@ on boot
 
 # AGPS
     mkdir /data/agps_supl 0771 gps system
+
+# NFC
+    mkdir /data/nfc_socket 0771 nfc radio
 
 ## Thermal
   #change permissions on thermal devices
@@ -1024,12 +1049,12 @@ service ap_daemon /system/bin/wpa_supplicant \
 # MT6620 related services (End)
 #
 
-service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -A -BK -dd
+service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -BK -dd
     class main
     disabled
     oneshot
 
-service dhcpcd_p2p /system/bin/logwrapper /system/bin/dhcpcd -A -BK -dd
+service dhcpcd_p2p /system/bin/logwrapper /system/bin/dhcpcd -BK -dd
     class main
     disabled
     oneshot
@@ -1242,6 +1267,11 @@ service dualmdlogger /system/bin/dualmdlogger
 service msensord /system/bin/msensord
     oneshot
 
+service s62xd /system/bin/s62xd
+    disabled
+    user compass
+    group system
+    
 service ami304d /system/bin/logwrapper /system/bin/ami304d
     user system
     group system
@@ -1254,12 +1284,30 @@ service memsicd /system/bin/memsicd
     user system
     group system
 
+service memsicd3416x /system/bin/memsicd3416x
+     disabled
+     oneshot
+	 user system
+    group system
+
+
+service qmc5983d /system/bin/qmc5983d
+     disabled
+     oneshot
+    user system
+    group system
+ 
 service akmd8975 /system/bin/akmd8975
     disabled
     user system
     group system
 
 service akmd8963 /system/bin/akmd8963
+    disabled
+    user system
+    group system
+
+service akmd09911 /system/bin/akmd09911
     disabled
     user system
     group system
@@ -1271,6 +1319,11 @@ service AcdApiDaemon /system/bin/AcdApiDaemon
     group system
 
 service bmm050d /system/bin/bmm050d
+    disabled
+    user system
+    group system
+
+service mc6420d /system/bin/mc6420d
     disabled
     user system
     group system

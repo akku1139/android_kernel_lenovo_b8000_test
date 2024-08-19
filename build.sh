@@ -6,7 +6,7 @@ release="n"
 rebuild="n"
 clean="n"
 #makeflags="-w -j8"
-makeflags="-w"
+makeflags="-w -j5"
 makedefs="V=0"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
@@ -153,8 +153,7 @@ else
 fi
 
 # update configuration
-#nice make ${makeflags} ${makedefs} silentoldconfig
-yes "" | nice make ${makeflags} ${makedefs} silentoldconfig
+nice make ${makeflags} ${makedefs} silentoldconfig
 
 if [ ! -z $KMOD_PATH ]; then
   echo "Build kernel module PROJECT=$MTK_PROJECT PATH=$KMOD_PATH";
