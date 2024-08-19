@@ -24,6 +24,14 @@ jobs:
           key: python2-bin
           save-always: true
 
+      - name: Config Python 2.7
+        if: steps.cache-python2.outputs.cache-hit == 'true'
+        run: |
+          source /tmp/python27/venv/activate
+          # show python version
+          echo "Python venv version:"
+          python --version
+
       - name: Setup Python 2.7
         if: steps.cache-python2.outputs.cache-hit != 'true'
         uses: LizardByte/setup-python-action@master
