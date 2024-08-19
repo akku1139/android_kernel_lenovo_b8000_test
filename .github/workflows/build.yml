@@ -38,6 +38,9 @@ jobs:
         with:
           python-version: '2.7'
 
+      - name: sh is bash
+        run: sudo ln -sf /usr/bin/bash /usr/bin/sh
+
       # - name: Save Python 2.7
       #   if: steps.cache-python27.outputs.cache-hit != 'true'
       #   uses: actions/cache/save@v4
