@@ -19,26 +19,13 @@ jobs:
       - name: Setup env
         run: |
           sudo apt install python2
-          sudo rm /usr/bin/sh
-          sudo touch /usr/bin/sh
-          sudo chmod 777 /usr/bin/sh
-          cat << EOL > /usr/bin/sh
-          #!/bin/bash
-          bash -c "$@"
-          RET=$?
-          if [ "$RET" -ne "0" ]; then
-            echo "`date '+[%Y-%m-%d %T.%N]'` $@" >> /tmp/errors
-          fi
-          exit $RET
-          EOL
-          sudo chmod 755 /usr/bin/sh
-          date "+Time zone is %Z (UTC%:::z)" > /tmp/errors
+          sudo ln -sf /usr/bin/bash /usr/bin/sh
           sudo ln -sf /usr/bin/python2 /usr/bin/python
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
         env:
-          MAKEJOBS: "-j5"
+          MAKEJOBS: "-j5 SHELL='bash -x'"
 
       - name: Git
         run: |
@@ -49,8 +36,3 @@ jobs:
             git commit -m "Build"
             git push
           fi
-
-      - name: Post scripts
-        if: ${{ always() }}
-        run: |
-          cat /tmp/errors
