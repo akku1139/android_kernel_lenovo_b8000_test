@@ -7,7 +7,8 @@ rebuild="n"
 clean="n"
 #makeflags="-w -j8"
 #makeflags="-w -j5"
-makeflags="-w"
+# For debug
+makeflags="-w --just-print"
 makedefs="V=0"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
