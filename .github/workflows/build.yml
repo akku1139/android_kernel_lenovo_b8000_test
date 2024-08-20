@@ -13,16 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cache repo
-        id: cache-repo
-        uses: actions/cache/restore@v4
-        with:
-          path: ./
-          key: repo-cache-${{ github.sha }}
-          restore-keys: repo-cache-
+      # - name: Cache repo
+      #   id: cache-repo
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ./
+      #     key: repo-cache-${{ github.sha }}
+      #     restore-keys: repo-cache-
 
       - name: Checkout
-        if: steps.cache-repo.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
 
       - name: Setup env
@@ -44,19 +43,19 @@ jobs:
             git push
           fi
 
-      - name: Destroy env
-        if: ${{ always() }}
-        run: |
-          make mrproper -j7
-          git checkout -- .
-          git clean -df
-          git fetch --depth=1
-          git gc --aggressive --prune=now
-          git reflog expire --expire=now --all
+      # - name: Destroy env
+      #   if: ${{ always() }}
+      #   run: |
+      #     TARGET_PRODUCT="lenovo89_tb_x10_jb2" make mrproper -j7
+      #     git checkout -- .
+      #     git clean -df
+      #     git fetch --depth=1
+      #     git gc --aggressive --prune=now
+      #     git reflog expire --expire=now --all
 
-      - name: Cache repo
-        if: ${{ always() }}
-        uses: actions/cache/save@v4
-        with:
-          path: ./
-          key: repo-cache-${{ github.sha }}
+      # - name: Cache repo
+      #   if: ${{ always() }}
+      #   uses: actions/cache/save@v4
+      #   with:
+      #     path: ./
+      #     key: repo-cache-${{ github.sha }}
