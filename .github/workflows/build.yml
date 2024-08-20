@@ -19,14 +19,20 @@ jobs:
       - name: Setup env
         run: |
           sudo apt install python2
-          sudo ln -sf /usr/bin/bash /usr/bin/sh
+          sudo rm /usr/bin/sh
+          sudo touch /usr/bin/sh
+          sudo chmod 777 /usr/bin/sh
+          cat << EOL > /usr/bin/sh
+          #!/bin/bash
+          exec bash -x $@
+          EOL
+          sudo chmod 755 /usr/bin/sh
           sudo ln -sf /usr/bin/python2 /usr/bin/python
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
         env:
           MAKEJOBS: "-j5"
-          SHELL: bash -x
 
       - name: Git
         run: |
