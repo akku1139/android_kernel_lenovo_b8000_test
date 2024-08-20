@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Cache repo
         id: cache-repo
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ./
           key: resources-cache-${{ github.sha }}
@@ -52,3 +52,10 @@ jobs:
           git fetch --depth=1
           git gc --aggressive --prune=now
           git reflog expire --expire=now --all
+
+      - name: Cache repo
+        if: ${{ always() }}
+        uses: actions/cache/save@v4
+        with:
+          path: ./
+          key: resources-cache-${{ github.sha }}
