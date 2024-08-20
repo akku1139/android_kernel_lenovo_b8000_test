@@ -18,8 +18,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./
-          key: resources-cache-${{ github.sha }}
-          restore-keys: resources-cache-
+          key: repo-cache-${{ github.sha }}
+          restore-keys: repo-cache-
 
       - name: Checkout
         if: steps.cache-repo.outputs.cache-hit != 'true'
@@ -58,4 +58,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ./
-          key: resources-cache-${{ github.sha }}
+          key: repo-cache-${{ github.sha }}
