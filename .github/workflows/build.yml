@@ -13,7 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cache repo
+        id: cache-repo
+        uses: actions/cache@v4
+        with:
+          path: ./
+          key: resources-cache-${{ github.sha }}
+          restore-keys: resources-cache-
+
       - name: Checkout
+        if: steps.cache-repo.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
 
       - name: Setup env
@@ -23,9 +32,13 @@ jobs:
           sudo ln -sf /usr/bin/python2 /usr/bin/python
 
       - name: Build
-        run: bash ./build.sh lenovo89_tb_x10_jb2
+        id:  build
+        run: |
+          bash ./build.sh lenovo89_tb_x10_jb2
+          echo "error=$?" >> $GITHUB_OUTPUT
 
       - name: Git
+        if: steps.build.outputs.error == '0'
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config --global user.name "github-actions[bot]"
@@ -34,3 +47,11 @@ jobs:
             git commit -m "Build"
             git push
           fi
+
+      - name: Destroy env
+        run: |
+          git checkout -- .
+          git clean -df
+          git fetch --depth=1
+          git gc --aggressive --prune=now
+          git reflog expire --expire=now --all
