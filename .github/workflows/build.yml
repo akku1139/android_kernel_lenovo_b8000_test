@@ -32,13 +32,9 @@ jobs:
           sudo ln -sf /usr/bin/python2 /usr/bin/python
 
       - name: Build
-        id:  build
-        run: |
-          bash ./build.sh lenovo89_tb_x10_jb2
-          echo "error=$?" >> $GITHUB_OUTPUT
+        run: bash ./build.sh lenovo89_tb_x10_jb2
 
       - name: Git
-        if: steps.build.outputs.error == '0'
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config --global user.name "github-actions[bot]"
@@ -49,6 +45,7 @@ jobs:
           fi
 
       - name: Destroy env
+        if: ${{ always() }}
         run: |
           git checkout -- .
           git clean -df
