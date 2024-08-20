@@ -1,6 +1,4 @@
 #include <lcm_drv.h>
-extern LCM_DRIVER nt35521_n070icn_gb1_lcm_drv;
-extern LCM_DRIVER nt35521_n070icn_gb1_v1_lcm_drv;
 extern LCM_DRIVER hx8369_lcm_drv;
 extern LCM_DRIVER hx8369_6575_lcm_drv;
 extern LCM_DRIVER hx8363_6575_dsi_lcm_drv;
@@ -31,8 +29,6 @@ extern LCM_DRIVER lvds_wsvga_ti_lcm_drv;
 extern LCM_DRIVER lvds_wsvga_ti_n_lcm_drv;
 extern LCM_DRIVER nt35565_3d_lcm_drv;
 extern LCM_DRIVER tm070ddh03_lcm_drv;
-extern LCM_DRIVER cm_n070icn_dsi_vdo_lcm_drv;
-extern LCM_DRIVER hj070ia_lcm_drv;
 extern LCM_DRIVER r61408_lcm_drv;
 extern LCM_DRIVER nt35510_lcm_drv;
 extern LCM_DRIVER nt35510_dpi_lcm_drv;
@@ -50,7 +46,7 @@ extern LCM_DRIVER gn_ssd2825_smd_s6e8aa;
 #endif
 extern LCM_DRIVER hx8369_dsi_bld_lcm_drv;
 extern LCM_DRIVER hx8369_dsi_tm_lcm_drv;
-extern LCM_DRIVER otm8018b_dsi_vdo_lcm_drv;	 
+extern LCM_DRIVER otm8018b_dsi_vdo_lcm_drv;
 extern LCM_DRIVER nt35512_dsi_vdo_lcm_drv;
 extern LCM_DRIVER hx8369_rgb_6585_fpga_lcm_drv;
 extern LCM_DRIVER hx8392a_dsi_cmd_lcm_drv;
@@ -63,26 +59,23 @@ extern LCM_DRIVER nt35590_hd720_dsi_cmd_cmi_lcm_drv;
 extern LCM_DRIVER nt35516_qhd_dsi_cmd_ipsboe_lcm_drv;
 extern LCM_DRIVER nt35516_qhd_dsi_cmd_ipsboe_wvga_lcm_drv;
 extern LCM_DRIVER bp070ws1_lcm_drv;
-extern LCM_DRIVER bp070ws1_n_lcm_drv;
 extern LCM_DRIVER bp101wx1_lcm_drv;
 extern LCM_DRIVER bp101wx1_n_lcm_drv;
 extern LCM_DRIVER nt35516_qhd_rav4_lcm_drv;
 extern LCM_DRIVER r63311_fhd_dsi_vdo_sharp_lcm_drv;
 extern LCM_DRIVER nt35596_fhd_dsi_vdo_truly_lcm_drv;
+extern LCM_DRIVER nt35596_fhd_dsi_vdo_truly_aux_lcm_drv;
+extern LCM_DRIVER nt35590_hd720_dsi_vdo_thl_lcm_drv;
+extern LCM_DRIVER otm1283a_hd720_vdo_movego_lcm_drv;
+extern LCM_DRIVER otm1283a_hd720_dsi_vdo_tst_lcm_drv;
+extern LCM_DRIVER r63311_fhd_dsi_vdo_malata_lcm_drv;
+//superdragonpt added
 extern LCM_DRIVER lgld070wx3_dsi_vdo_lcm_drv;
-extern LCM_DRIVER he080ia_lcm_drv;
-extern LCM_DRIVER auo_b079xat02_dsi_vdo_lcm_drv;
+extern LCM_DRIVER nt35521_dsi_vdo_lcm_drv;
+//superdragonpt
 
-LCM_DRIVER* lcm_driver_list[] = 
-{ 
-#if defined(NT35521_N070ICN_GB1)
-	&nt35521_n070icn_gb1_lcm_drv,
-#endif
-
-#if defined(NT35521_N070ICN_GB1_V1)
-	&nt35521_n070icn_gb1_v1_lcm_drv,
-#endif
-
+LCM_DRIVER* lcm_driver_list[] =
+{
 #if defined(HX8369)
 	&hx8369_lcm_drv,
 #endif
@@ -104,11 +97,11 @@ LCM_DRIVER* lcm_driver_list[] =
 #endif
 
 #if defined(NT35590_HD720_DSI_VDO_TRULY)
-	&nt35590_hd720_dsi_vdo_truly_lcm_drv, 
+	&nt35590_hd720_dsi_vdo_truly_lcm_drv,
 #endif
 
 #if defined(SSD2075_HD720_DSI_VDO_TRULY)
-	&ssd2075_hd720_dsi_vdo_truly_lcm_drv, 
+	&ssd2075_hd720_dsi_vdo_truly_lcm_drv,
 #endif
 
 
@@ -176,10 +169,9 @@ LCM_DRIVER* lcm_driver_list[] =
 	&nt35510_lcm_drv,
 #endif
 
-#if defined(NT35510_RGB_6575) 
+#if defined(NT35510_RGB_6575)
 	&nt35510_dpi_lcm_drv,
-#endif	
-	
+#endif
 
 #if defined(NT35510_HVGA)
 	&nt35510_hvga_lcm_drv,
@@ -257,14 +249,6 @@ LCM_DRIVER* lcm_driver_list[] =
 	&tm070ddh03_lcm_drv,
 #endif
 
-#if defined(CM_N070ICN_DSI_VDO)
-	&cm_n070icn_dsi_vdo_lcm_drv,
-#endif
-
-#if defined(HJ070IA)
-	&hj070ia_lcm_drv,
-#endif
-
 #if defined(R63303_IDISPLAY)
 	&r63303_idisplay_lcm_drv,
 #endif
@@ -276,6 +260,7 @@ LCM_DRIVER* lcm_driver_list[] =
 #if defined(GN_SSD2825_SMD_S6E8AA)
 	&gn_ssd2825_smd_s6e8aa,
 #endif
+
 #if defined(HX8369_TM_DSI)
 	&hx8369_dsi_tm_lcm_drv,
 #endif
@@ -300,17 +285,17 @@ LCM_DRIVER* lcm_driver_list[] =
 	&scf0700m48ggu02_lcm_drv,
 #endif
 
-#if defined(OTM8018B_DSI_VDO)	
-	&otm8018b_dsi_vdo_lcm_drv, 
+#if defined(OTM8018B_DSI_VDO)
+	&otm8018b_dsi_vdo_lcm_drv,
 #endif
 
 #if defined(NT35512_DSI_VDO)
-	&nt35512_dsi_vdo_lcm_drv, 
+	&nt35512_dsi_vdo_lcm_drv,
 #endif
 
 #if defined(HX8392A_DSI_CMD)
   &hx8392a_dsi_cmd_lcm_drv,
-#endif 
+#endif
 
 #if defined(NT35516_QHD_DSI_CMD_IPSBOE)
   &nt35516_qhd_dsi_cmd_ipsboe_lcm_drv,
@@ -326,10 +311,6 @@ LCM_DRIVER* lcm_driver_list[] =
 
 #if defined(BP070WS1)
   &bp070ws1_lcm_drv,
-#endif
-
-#if defined(BP070WS1_N)
-  &bp070ws1_n_lcm_drv,
 #endif
 
 #if defined(BP101WX1)
@@ -352,17 +333,35 @@ LCM_DRIVER* lcm_driver_list[] =
 	&nt35596_fhd_dsi_vdo_truly_lcm_drv,
 #endif
 
+#if defined(NT35596_FHD_DSI_VDO_TRULY_AUX)
+	&nt35596_fhd_dsi_vdo_truly_aux_lcm_drv,
+#endif
+
+#if defined(NT35590_HD720_DSI_VDO_THL)
+  &nt35590_hd720_dsi_vdo_thl_lcm_drv,
+#endif
+
+#if defined(OTM1283A_HD720_VDO_MOVEGO)
+  &otm1283a_hd720_vdo_movego_lcm_drv,
+#endif
+
+#if defined(OTM1283A_HD720_DSI_VDO_TST)
+  &otm1283a_hd720_dsi_vdo_tst_lcm_drv,
+#endif
+
+#if defined(R63311_FHD_DSI_VDO_MALATA)
+  &r63311_fhd_dsi_vdo_malata_lcm_drv,
+#endif
+
+//superdragonpt added
 #if defined(LGLD070WX3_DSI_VDO)
     &lgld070wx3_dsi_vdo_lcm_drv,
 #endif
 
-#if defined(HE080IA)
-	&he080ia_lcm_drv,
+#if defined(NT35521_DSI_VDO)
+        &nt35521_dsi_vdo_lcm_drv,
 #endif
-
-#if defined(AUO_B079XAT02_DSI_VDO)
-    &auo_b079xat02_dsi_vdo_lcm_drv,
-#endif
+//superdragonpt
 };
 
 #define LCM_COMPILE_ASSERT(condition) LCM_COMPILE_ASSERT_X(condition, __LINE__)
