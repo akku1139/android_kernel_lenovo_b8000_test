@@ -5,11 +5,10 @@ curcfg=".config"
 release="n"
 rebuild="n"
 clean="n"
-#makeflags="-w -j8"
 #makeflags="-w -j5"
-# For debug
-makeflags="-w --just-print"
-makedefs="V=0"
+makeflags="-w"
+#makedefs="V=0"
+makedefs="V=1 SHELL='sh -x'"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
 TOOLCHAIN="./toolchain/arm-cortex_a9-linux-gnueabihf-linaro_4.9.1-2014.05/bin"
