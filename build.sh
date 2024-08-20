@@ -8,7 +8,7 @@ clean="n"
 #makeflags="-w -j5"
 makeflags="-w"
 #makedefs="V=0"
-makedefs="V=1 SHELL='sh -x'"
+makedefs="V=1"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
 TOOLCHAIN="./toolchain/arm-cortex_a9-linux-gnueabihf-linaro_4.9.1-2014.05/bin"
