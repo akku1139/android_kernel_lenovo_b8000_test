@@ -47,6 +47,7 @@ jobs:
       - name: Destroy env
         if: ${{ always() }}
         run: |
+          make mrproper -j7
           git checkout -- .
           git clean -df
           git fetch --depth=1
