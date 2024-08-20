@@ -13,25 +13,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # - name: Cache repo
-      #   id: cache-repo
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: ./
-      #     key: repo-cache-${{ github.sha }}
-      #     restore-keys: repo-cache-
-
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup env
         run: |
           sudo apt install python2
-          sudo ln -sf /usr/bin/bash /usr/bin/sh
+          sudo rm /usr/bin/sh
+          sudo touch /usr/bin/sh
+          sudo chmod 777 /usr/bin/sh
+          cat << EOL > /usr/bin/sh
+          #!/bin/bash
+          bash -c "$@"
+          RET=$?
+          if [ $RET -ne "0" ]; then
+            echo "`date '+[%Y-%m-%d %T.%N]'` $@" >> /tmp/errors
+          fi
+          exit $RET
+          EOL
+          sudo chmod 755 /usr/bin/sh
+          date "+Time zone is %Z (UTC%:::z)" > /tmp/errors
           sudo ln -sf /usr/bin/python2 /usr/bin/python
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
+        env:
+          MAKEJOBS: "-j5"
 
       - name: Git
         run: |
@@ -43,19 +50,7 @@ jobs:
             git push
           fi
 
-      # - name: Destroy env
-      #   if: ${{ always() }}
-      #   run: |
-      #     TARGET_PRODUCT="lenovo89_tb_x10_jb2" make mrproper -j7
-      #     git checkout -- .
-      #     git clean -df
-      #     git fetch --depth=1
-      #     git gc --aggressive --prune=now
-      #     git reflog expire --expire=now --all
-
-      # - name: Cache repo
-      #   if: ${{ always() }}
-      #   uses: actions/cache/save@v4
-      #   with:
-      #     path: ./
-      #     key: repo-cache-${{ github.sha }}
+      - name: Post scripts
+        if: ${{ always() }}
+        run: |
+          cat /tmp/errors
