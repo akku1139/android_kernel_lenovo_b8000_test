@@ -25,7 +25,8 @@ jobs:
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
         env:
-          MAKEJOBS: "-j5 SHELL='bash -x'"
+          MAKEJOBS: "-j5"
+          SHELL: bash -x
 
       - name: Git
         run: |
