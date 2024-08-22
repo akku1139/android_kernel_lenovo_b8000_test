@@ -10,7 +10,7 @@ makedefs="V=0"
 #makedefs="V=1"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
-TOOLCHAIN="./toolchain/arm-cortex_a7-linux-gnueabihf_5.3.0/bin"
+TOOLCHAIN="./toolchain/arm-cortex_a7-linux-gnueabihf_4.9.3/bin"
 #if [ "${KBUILD_OUTPUT_SUPPORT}" == "yes" ];then
 #  outdir=$curdir/out
 #  mkdir -p $outdir
