@@ -162,7 +162,7 @@ void dump_inst_cache(){
     unsigned int inst_cache_size = 32;
 
     __disable_icache();
-    printk("[CPU%] Dump L1 I cache...\n",smp_processor_id());
+    printk("[CPU%u] Dump L1 I cache...\n",smp_processor_id());
     printk("ADDRESS\tSEC\tSET\tWAY\tVALID\tarm_state\t00\t04\t08\t0C\t10\t14\t18\t1C\n");
     for (cache_set = 0; cache_set < 512; cache_set++)
     {
