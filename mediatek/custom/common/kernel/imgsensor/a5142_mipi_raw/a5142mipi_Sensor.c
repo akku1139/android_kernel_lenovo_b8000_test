@@ -829,21 +829,33 @@ kal_bool A5142MIPI_set_sensor_item_info(kal_uint16 group_idx, kal_uint16 item_id
 static void A5142MIPI_Init_setting(void) //superdragonpt OK
 {
     kal_uint16 status = 0;
-    
+
     SENSORDB( "Enter!");
-    
+
     A5142MIPI_write_cmos_sensor_8(0x0103, 0x01);    //SOFTWARE_RESET (clears itself)
     mDELAY(5);      //Initialization Time
-    
+
     //[Demo Initialization 1296 x 972 MCLK= 26MHz, PCLK=104MHz]
     //stop_streaming
     A5142MIPI_write_cmos_sensor_8(0x0100, 0x00);    // MODE_SELECT
-    
+    #ifdef MIPI_INTERFACE
+        #ifdef RAW10
             A5142MIPI_write_cmos_sensor(0x301A, 0x0218);    //RESET_REGISTER enable mipi interface  bit[9] mask bad frame
             A5142MIPI_write_cmos_sensor(0x3064, 0xB800);    // SMIA_TEST
             A5142MIPI_write_cmos_sensor(0x31AE, 0x0202);    // two lane
             A5142MIPI_write_cmos_sensor(0x0112, 0x0A0A);    // 10bit raw output
-    
+        #else
+            A5142MIPI_write_cmos_sensor(0x301A, 0x0218);    //RESET_REGISTER enable mipi interface  bit[9] mask bad frame
+            A5142MIPI_write_cmos_sensor(0x3064, 0x0805);    // SMIA_TEST
+            A5142MIPI_write_cmos_sensor(0x31AE, 0x0202);    // two lane
+            A5142MIPI_write_cmos_sensor(0x0112, 0x0808);    // 8bit raw output
+        #endif
+    #else
+        A5142MIPI_write_cmos_sensor(0x301A, 0x12C8);        //RESET_REGISTER enable parallel bit[9] mask bad frame
+        A5142MIPI_write_cmos_sensor(0x3064, 0x5840);        // SMIA_TEST
+        A5142MIPI_write_cmos_sensor(0x31AE, 0x0101);        // SERIAL_FORMAT
+    #endif
+
     //REV4_recommended_settings
     A5142MIPI_write_cmos_sensor(0x316A, 0x8400);    // DAC_FBIAS
     A5142MIPI_write_cmos_sensor(0x316C, 0x8400);    // DAC_TXLO
@@ -987,12 +999,32 @@ static void A5142MIPI_Init_setting(void) //superdragonpt OK
     A5142MIPI_write_cmos_sensor(0x30F0, 0x0000);    // disable AF  A5142 have not internal AF IC
 
     //PLL MCLK = 26MHZ, PCLK = 104MHZ, VT = 104MHZ
+    #ifdef RAW10
         A5142MIPI_write_cmos_sensor(0x0300, 0x05);  //vt_pix_clk_div = 5
         A5142MIPI_write_cmos_sensor(0x0302, 0x01);  //vt_sys_clk_div = 1
         A5142MIPI_write_cmos_sensor(0x0304, 0x02);  //pre_pll_clk_div = 2
         A5142MIPI_write_cmos_sensor(0x0306, 0x28);  //pll_multiplier    =  40
         A5142MIPI_write_cmos_sensor(0x0308, 0x0A);  //op_pix_clk_div =  10
         A5142MIPI_write_cmos_sensor(0x030A, 0x01);  //op_sys_clk_div = 1
+    #else
+        #ifdef MIPI_INTERFACE
+            A5142MIPI_write_cmos_sensor(0x0300, 0x04);  //vt_pix_clk_div = 8
+        #else
+            A5142MIPI_write_cmos_sensor(0x0300, 0x08);  //vt_pix_clk_div = 8
+        #endif
+        A5142MIPI_write_cmos_sensor(0x0302, 0x01);  //vt_sys_clk_div = 1
+        A5142MIPI_write_cmos_sensor(0x0304, 0x02);  //pre_pll_clk_div = 2
+        A5142MIPI_write_cmos_sensor(0x0306, 0x20);  //pll_multiplier    =  32
+        A5142MIPI_write_cmos_sensor(0x0308, 0x08);  //op_pix_clk_div =  8
+        A5142MIPI_write_cmos_sensor(0x030A, 0x01);  //op_sys_clk_div = 1
+    #endif
+
+    //A5142MIPI_write_cmos_sensor(0x306E, 0xbc00);  // slew rate for color issue
+    //A5142MIPI_write_cmos_sensor(0x3040, 0x04C3);
+    //A5142MIPI_write_cmos_sensor(0x3010, 0x0184);  // FINE_CORRECTION
+    //A5142MIPI_write_cmos_sensor(0x3012, 0x029C);  // COARSE_INTEGRATION_TIME_
+    //A5142MIPI_write_cmos_sensor(0x3014, 0x0908);  // FINE_INTEGRATION_TIME_
+    //A5142MIPI_write_cmos_sensor_8(0x0100, 0x01);  // MODE_SELECT
 
     /*superdragonpt added: from stock kernel IDA reverse, 2021 AUG19*/
         A5142MIPI_write_cmos_sensor(0x3100, 0x0000);
@@ -1172,20 +1204,43 @@ static void A5142MIPI_preview_setting(void) //superdragonpt OK
     A5142MIPI_write_cmos_sensor_8(0x0100, 0x0);     // MODE_SELECT
     
     A5142MIPI_write_cmos_sensor_8(0x0104, 0x01);    // GROUPED_PARAMETER_HOLD = 0x1
-    
+
     //1296 x 972  Timing settings 30fps
+    #ifdef MIPI_INTERFACE
+        #ifdef RAW10
+            //A5142MIPI_write_cmos_sensor(0x301A, 0x0018);  // enable mipi interface
             A5142MIPI_write_cmos_sensor(0x3064, 0xB800);    // SMIA_TEST
             A5142MIPI_write_cmos_sensor(0x31AE, 0x0202);    // two lane 201 tow 202
             A5142MIPI_write_cmos_sensor(0x0112, 0x0A0A);    // 10bit raw output
+        #else
+            //A5142MIPI_write_cmos_sensor(0x301A, 0x0018);  // enable mipi interface
+            A5142MIPI_write_cmos_sensor(0x3064, 0x0805);    // SMIA_TEST
+            A5142MIPI_write_cmos_sensor(0x31AE, 0x0202);    // two lane
+            A5142MIPI_write_cmos_sensor(0x0112, 0x0808);    // 8bit raw output
+        #endif
+    #endif
 
     //PLL MCLK=26MHZ, PCLK = 104MHZ, VT = 104MHZ
+    #ifdef RAW10
         A5142MIPI_write_cmos_sensor(0x0300, 0x05);  //vt_pix_clk_div = 5
         A5142MIPI_write_cmos_sensor(0x0302, 0x01);  //vt_sys_clk_div = 1
         A5142MIPI_write_cmos_sensor(0x0304, 0x02);  //pre_pll_clk_div = 2
         A5142MIPI_write_cmos_sensor(0x0306, 0x28);  //pll_multiplier    =  40
         A5142MIPI_write_cmos_sensor(0x0308, 0x0A);  //op_pix_clk_div =  10
         A5142MIPI_write_cmos_sensor(0x030A, 0x01);  //op_sys_clk_div = 1
-    
+    #else
+        #ifdef MIPI_INTERFACE
+            A5142MIPI_write_cmos_sensor(0x0300, 0x04);  //vt_pix_clk_div = 4
+        #else
+            A5142MIPI_write_cmos_sensor(0x0300, 0x08);  //vt_pix_clk_div = 8
+        #endif
+        A5142MIPI_write_cmos_sensor(0x0302, 0x01);  //vt_sys_clk_div = 1
+        A5142MIPI_write_cmos_sensor(0x0304, 0x02);  //pre_pll_clk_div = 2
+        A5142MIPI_write_cmos_sensor(0x0306, 0x20);  //pll_multiplier    =  32
+        A5142MIPI_write_cmos_sensor(0x0308, 0x08);  //op_pix_clk_div =  8
+        A5142MIPI_write_cmos_sensor(0x030A, 0x01);  //op_sys_clk_div = 1
+    #endif
+
     A5142MIPI_write_cmos_sensor(0x0344, 0x0008);    // X_ADDR_START   =  8
     A5142MIPI_write_cmos_sensor(0x0346, 0x0008);    // Y_ADDR_START   =  8
     A5142MIPI_write_cmos_sensor(0x0348, 0x0A25);    // X_ADDR_END      = 2597
@@ -1210,7 +1265,11 @@ static void A5142MIPI_preview_setting(void) //superdragonpt OK
     A5142MIPI_write_cmos_sensor_8(0x0100, 0x01);    // MODE_SELECT
 
     spin_lock(&a5142mipiraw_drv_lock);
+    #ifdef MIPI_INTERFACE
         A5142MIPI_sensor.preview_vt_clk = 1040;
+    #else
+        A5142MIPI_sensor.preview_vt_clk = 520;
+    #endif
     spin_unlock(&a5142mipiraw_drv_lock);
 
     mDELAY(50); 
@@ -1224,18 +1283,40 @@ static void A5142MIPI_capture_setting(void) //superdragonpt check OK with IDA re
     A5142MIPI_write_cmos_sensor_8(0x0100, 0x00);  // MODE_SELECT
 
     A5142MIPI_write_cmos_sensor_8(0x0104, 0x01); //Grouped Parameter Hold = 0x1
-
+    #ifdef MIPI_INTERFACE
+        #ifdef RAW10
+            //A5142MIPI_write_cmos_sensor(0x301A, 0x0018);        // enable mipi interface
             A5142MIPI_write_cmos_sensor(0x3064, 0xB800);    // SMIA_TEST
             A5142MIPI_write_cmos_sensor(0x31AE, 0x0202);    // two lane 201 tow 202
             A5142MIPI_write_cmos_sensor(0x0112, 0x0A0A);    // 10bit raw output
+        #else
+            //A5142MIPI_write_cmos_sensor(0x301A, 0x0018);        // enable mipi interface
+            A5142MIPI_write_cmos_sensor(0x3064, 0x0805);    // SMIA_TEST
+            A5142MIPI_write_cmos_sensor(0x31AE, 0x0202);    // two lane
+            A5142MIPI_write_cmos_sensor(0x0112, 0x0808);    // 8bit raw output
+        #endif
+    #endif
 
     //PLL MCLK=26MHZ, PCLK = 111.8MHZ, VT = 111.8MHZ
+    #ifdef RAW10
         A5142MIPI_write_cmos_sensor(0x0300, 0x05);  //vt_pix_clk_div = 5
         A5142MIPI_write_cmos_sensor(0x0302, 0x01);  //vt_sys_clk_div = 1
         A5142MIPI_write_cmos_sensor(0x0304, 0x04);  //pre_pll_clk_div = 4
         A5142MIPI_write_cmos_sensor(0x0306, 0x56);  //pll_multiplier    =  86
         A5142MIPI_write_cmos_sensor(0x0308, 0x0A);  //op_pix_clk_div =  10
         A5142MIPI_write_cmos_sensor(0x030A, 0x01);  //op_sys_clk_div = 1
+    #else
+        #ifdef MIPI_INTERFACE
+            A5142MIPI_write_cmos_sensor(0x0300, 0x04);  //vt_pix_clk_div = 8
+        #else
+            A5142MIPI_write_cmos_sensor(0x0300, 0x08);  //vt_pix_clk_div = 8
+        #endif
+        A5142MIPI_write_cmos_sensor(0x0302, 0x01);  //vt_sys_clk_div = 1
+        A5142MIPI_write_cmos_sensor(0x0304, 0x02);  //pre_pll_clk_div = 2
+        A5142MIPI_write_cmos_sensor(0x0306, 0x20);  //pll_multiplier    =  32
+        A5142MIPI_write_cmos_sensor(0x0308, 0x08);  //op_pix_clk_div =  8
+        A5142MIPI_write_cmos_sensor(0x030A, 0x01);  //op_sys_clk_div = 1
+    #endif
 
     A5142MIPI_write_cmos_sensor(0x0344, 0x0008);    //X_ADDR_START   = 8
     A5142MIPI_write_cmos_sensor(0x0346, 0x0008);    //Y_ADDR_START    = 8
@@ -1261,7 +1342,11 @@ static void A5142MIPI_capture_setting(void) //superdragonpt check OK with IDA re
     A5142MIPI_write_cmos_sensor_8(0x0100, 0x01);    // MODE_SELECT
 
     spin_lock(&a5142mipiraw_drv_lock);
+    #ifdef MIPI_INTERFACE
         A5142MIPI_sensor.capture_vt_clk = 1118;
+    #else
+        A5142MIPI_sensor.capture_vt_clk = 520;
+    #endif
     spin_unlock(&a5142mipiraw_drv_lock);
 
     mDELAY(10);
