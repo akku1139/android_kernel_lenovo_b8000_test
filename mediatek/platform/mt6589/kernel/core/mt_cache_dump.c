@@ -10,30 +10,32 @@
 #include <linux/cpu.h>
 #include <linux/smp.h>
 
-extern void __inner_clean_dcache_L1();
-extern void __inner_clean_dcache_L2();
-extern void __enable_dcache();
-extern void __disable_dcache();
-extern void __enable_icache();
-extern void __disable_icache();
+extern void __inner_clean_dcache_L1(void);
+extern void __inner_clean_dcache_L2(void);
+extern void __enable_dcache(void);
+extern void __disable_dcache(void);
+extern void __enable_icache(void);
+extern void __disable_icache(void);
 
-void dump_data_cache_L1(){
+void dump_data_cache_L1(void *null){
     unsigned int cache_tag;
     unsigned int cache_level = 0;
     unsigned int cache_way;
     unsigned int cache_set;
     unsigned int elem_idx;
-    unsigned int cache_data1,cache_data2,cache_data3;
+    //unsigned int cache_data1,cache_data2,cache_data3;
+    unsigned int cache_data1 = 0;
+    unsigned int cache_data2 = 0;
     unsigned int tag_address;
     unsigned int sec;
     unsigned int tag_MOESI;
     unsigned int dirty_MOESI;
     unsigned int outer_memory_att;
     unsigned int data_cache_size = 64;
-    unsigned int max_cache_level = 2;
+    //unsigned int max_cache_level = 2;
     unsigned int max_cache_set = 0x80;
     unsigned int max_cache_way = 0x4;
-    unsigned int tmp;
+    //unsigned int tmp;
 
     __inner_clean_dcache_L1();
     __disable_dcache();
@@ -82,23 +84,25 @@ void dump_data_cache_L1(){
     }
     __enable_dcache();
 }
-void dump_data_cache_L2(){
+void dump_data_cache_L2(void){
     unsigned int cache_tag;
     unsigned int cache_level = 2;
     unsigned int cache_way;
     unsigned int cache_set;
     unsigned int elem_idx;
-    unsigned int cache_data1,cache_data2,cache_data3;
+    //unsigned int cache_data1,cache_data2,cache_data3;
+    unsigned int cache_data1 = 0;
+    unsigned int cache_data2 = 0;
     unsigned int tag_address;
     unsigned int sec;
     unsigned int tag_MOESI;
     unsigned int dirty_MOESI;
     unsigned int outer_memory_att;
     unsigned int data_cache_size = 64;
-    unsigned int max_cache_level = 2;
+    //unsigned int max_cache_level = 2;
     unsigned int max_cache_set = 0x800;
     unsigned int max_cache_way = 0x8;
-    unsigned int tmp;
+    //unsigned int tmp;
 
     __inner_clean_dcache_L2();
     __disable_dcache();
@@ -148,13 +152,16 @@ void dump_data_cache_L2(){
     }
     __enable_dcache();
 }
-void dump_inst_cache(){
+void dump_inst_cache(void *null){
     unsigned int cache_tag;
     unsigned int cache_level = 1;
     unsigned int cache_way;
     unsigned int cache_set;
     unsigned int elem_idx;
-    unsigned int cache_data1,cache_data2,cache_data3;
+    //unsigned int cache_data1,cache_data2,cache_data3;
+    unsigned int cache_data1 = 0;
+    unsigned int cache_data2 = 0;
+    unsigned int cache_data3 = 0;
     unsigned int valid;
     unsigned int tag_address;
     unsigned int sec;
