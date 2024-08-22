@@ -377,12 +377,12 @@ int disp_path_config_layer(OVL_CONFIG_STRUCT* pOvlConfig)
 {
 //    unsigned int reg_addr;
 
-    DISP_DBG("[DDP] config_layer(), layer=%d, en=%d, source=%d, fmt=%d, addr=0x%x, (%d, %d, %d, %d), pitch=%d, keyEn=%d, key=%d, aen=%d, alpha=%d, isTdshp=%d \n ", 
+    DISP_DBG("[DDP] config_layer(), layer=%d, en=%d, source=%d, fmt=%d, addr=0x%x, src=(%d, %d), pitch=%d, dst=(%d, %d, %d, %d) keyEn=%d, key=%d, aen=%d, alpha=%d, isTdshp=%d \n ",
     pOvlConfig->layer,   // layer
-    pOvlConfig->layer_en,   
+    pOvlConfig->layer_en,
     pOvlConfig->source,   // data source (0=memory)
-    pOvlConfig->fmt, 
-    pOvlConfig->addr, // addr 
+    pOvlConfig->fmt,
+    pOvlConfig->addr, // addr
     pOvlConfig->src_x,  // x
     pOvlConfig->src_y,  // y
     pOvlConfig->src_pitch, //pitch, pixel number
@@ -394,8 +394,8 @@ int disp_path_config_layer(OVL_CONFIG_STRUCT* pOvlConfig)
     pOvlConfig->key,  //color key
     pOvlConfig->aen, // alpha enable
     pOvlConfig->alpha,
-    pOvlConfig->isTdshp);    
-    
+    pOvlConfig->isTdshp);
+
     // config overlay
     MMProfileLogEx(DDP_MMP_Events.Debug, MMProfileFlagPulse, pOvlConfig->layer, pOvlConfig->layer_en);
     OVLLayerSwitch(pOvlConfig->layer, pOvlConfig->layer_en);
