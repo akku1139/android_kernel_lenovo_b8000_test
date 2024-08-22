@@ -217,8 +217,8 @@ static void OV9726MIPI_Write_Shutter(kal_uint16 iShutter)
 
 static void OV9726MIPI_Set_Dummy(const kal_uint16 iPixels, const kal_uint16 iLines)
 {
-
-	kal_uint16 hactive, vactive, line_length, frame_height;
+	//kal_uint16 hactive, vactive, line_length, frame_height;
+	kal_uint16 line_length, frame_height;
 
 	SENSORDB("OV9726MIPI_Set_Dummy:iPixels:%x; iLines:%x \n",iPixels,iLines);
 
@@ -296,7 +296,7 @@ void set_OV9726MIPI_shutter(kal_uint16 iShutter)
 }   /*  Set_OV9726MIPI_Shutter */
 
 
-
+/*
 static kal_uint16 OV9726MIPIReg2Gain(const kal_uint8 iReg)
 {
     kal_uint8 iI;
@@ -311,6 +311,7 @@ static kal_uint16 OV9726MIPIReg2Gain(const kal_uint8 iReg)
     return iGain +  iGain * (iReg & 0x0F) / 16;
 
 }
+*/
 
 static kal_uint8 OV9726MIPIGain2Reg(const kal_uint16 iGain)
 {
@@ -720,7 +721,7 @@ inline static kal_bool OV9726MIPI_set_sensor_item_info(MSDK_SENSOR_ITEM_INFO_STR
 }
 
 
-void OV9726MIPI_init()
+void OV9726MIPI_init(void)
 {
 	SENSORDB("OV9726MIPI init\n");
 	OV9726MIPI_write_cmos_sensor(0x0103,0x01);// software reset
@@ -817,7 +818,7 @@ void OV9726MIPI_init()
 	
 }
 
-void OV9726MIPI_set_720P()
+void OV9726MIPI_set_720P(void)
 {
 
 	SENSORDB("720P init\n");
@@ -939,6 +940,8 @@ UINT32 OV9726MIPISetMaxFramerateByScenario(MSDK_SCENARIO_ID_ENUM scenarioId, MUI
 		case MSDK_SCENARIO_ID_CAMERA_3D_PREVIEW:
 		case MSDK_SCENARIO_ID_CAMERA_3D_VIDEO:
 		case MSDK_SCENARIO_ID_CAMERA_3D_CAPTURE:
+			break;
+		default:
 			break;
 	}
 	return ERROR_NONE;
@@ -1065,7 +1068,7 @@ UINT32 OV9726MIPIClose(void)
 UINT32 OV9726MIPIPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 					  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
-	kal_uint16 startx=0,starty=0;
+	//kal_uint16 startx=0,starty=0;
 	kal_uint16 dummy_line;
 
 	SENSORDB("OV9726MIPIPreview \n");
@@ -1140,10 +1143,9 @@ UINT32 OV9726MIPIPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 UINT32 OV9726MIPICapture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 						  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
-	const kal_uint16 pv_line_length = OV9726MIPI_sensor.line_length;
+	//const kal_uint16 pv_line_length = OV9726MIPI_sensor.line_length;
 	//const kal_uint32 pv_pclk = OV9726MIPI_sensor.pclk;
-	kal_uint16 shutter = OV9726MIPI_sensor.shutter;
-	kal_uint16 dummy_pixel=0,dummy_line=0, cap_fps;
+	//kal_uint16 shutter = OV9726MIPI_sensor.shutter;
 	kal_uint16 startx=0,starty=0;
 
 	SENSORDB("OV9726MIPICapture \n");
@@ -1156,16 +1158,16 @@ UINT32 OV9726MIPICapture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 	OV9726MIPI_AutoFlicker_Mode=KAL_FALSE;
 	spin_unlock(&ov9726mipiraw_drv_lock);
 
-	
 	OV9726MIPI_HVMirror(sensor_config_data->SensorImageMirror);
 
-	
 		spin_lock(&ov9726mipiraw_drv_lock);
 		OV9726MIPI_sensor.pv_mode = KAL_FALSE;
 		spin_unlock(&ov9726mipiraw_drv_lock);
 		#if 0
+		kal_uint16 dummy_pixel=0,dummy_line=0, cap_fps;
+
 		cap_fps = OV9726MIPI_FPS(13);
-		
+
 		dummy_pixel= OV9726MIPI_sensor.pclk * OV9726MIPI_FPS(1) / ((OV9726MIPI_FULL_PERIOD_LINE_NUMS+OV9726MIPI_DEFAULT_DUMMY_LINES) * cap_fps);
 		dummy_pixel = dummy_pixel< (OV9726MIPI_FULL_PERIOD_PIXEL_NUMS+OV9726MIPI_DEFAULT_DUMMY_PIXELS) ? 0 : dummy_pixel- (OV9726MIPI_FULL_PERIOD_PIXEL_NUMS+OV9726MIPI_DEFAULT_DUMMY_PIXELS);
 		#endif
@@ -1175,7 +1177,6 @@ UINT32 OV9726MIPICapture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
     image_window->GrabStartY= starty;
     image_window->ExposureWindowWidth= OV9726MIPI_IMAGE_SENSOR_PV_WIDTH - 2*startx;
     image_window->ExposureWindowHeight= OV9726MIPI_IMAGE_SENSOR_PV_HEIGHT - 2*starty;
-	
 
 	return ERROR_NONE;
 }   /* OV9726MIPI_Capture() */
@@ -1404,14 +1405,14 @@ UINT32 OV9726MIPIFeatureControl(MSDK_SENSOR_FEATURE_ENUM FeatureId,
 	UINT16 *pFeatureData16=(UINT16 *) pFeaturePara;
 	UINT32 *pFeatureReturnPara32=(UINT32 *) pFeaturePara;
 	UINT32 *pFeatureData32=(UINT32 *) pFeaturePara;
-	UINT32 OV9726MIPISensorRegNumber;
-	UINT32 i;
-	PNVRAM_SENSOR_DATA_STRUCT pSensorDefaultData=(PNVRAM_SENSOR_DATA_STRUCT) pFeaturePara;
-	MSDK_SENSOR_CONFIG_STRUCT *pSensorConfigData=(MSDK_SENSOR_CONFIG_STRUCT *) pFeaturePara;
+	//UINT32 OV9726MIPISensorRegNumber;
+	//UINT32 i;
+	//PNVRAM_SENSOR_DATA_STRUCT pSensorDefaultData=(PNVRAM_SENSOR_DATA_STRUCT) pFeaturePara;
+	//MSDK_SENSOR_CONFIG_STRUCT *pSensorConfigData=(MSDK_SENSOR_CONFIG_STRUCT *) pFeaturePara;
 	MSDK_SENSOR_REG_INFO_STRUCT *pSensorRegData=(MSDK_SENSOR_REG_INFO_STRUCT *) pFeaturePara;
-	MSDK_SENSOR_GROUP_INFO_STRUCT *pSensorGroupInfo=(MSDK_SENSOR_GROUP_INFO_STRUCT *) pFeaturePara;
-	MSDK_SENSOR_ITEM_INFO_STRUCT *pSensorItemInfo=(MSDK_SENSOR_ITEM_INFO_STRUCT *) pFeaturePara;
-	MSDK_SENSOR_ENG_INFO_STRUCT	*pSensorEngInfo=(MSDK_SENSOR_ENG_INFO_STRUCT *) pFeaturePara;
+	//MSDK_SENSOR_GROUP_INFO_STRUCT *pSensorGroupInfo=(MSDK_SENSOR_GROUP_INFO_STRUCT *) pFeaturePara;
+	//MSDK_SENSOR_ITEM_INFO_STRUCT *pSensorItemInfo=(MSDK_SENSOR_ITEM_INFO_STRUCT *) pFeaturePara;
+	//MSDK_SENSOR_ENG_INFO_STRUCT	*pSensorEngInfo=(MSDK_SENSOR_ENG_INFO_STRUCT *) pFeaturePara;
 
 
 	SENSORDB("OV9726MIPIFeatureControl£¬FeatureId:%d\n",FeatureId);
