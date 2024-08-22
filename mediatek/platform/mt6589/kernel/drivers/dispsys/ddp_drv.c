@@ -475,7 +475,9 @@ extern void wfd_source_buffer_switch(void);
 #endif
 
 //extern void hdmi_test_switch_buffer(void);
+#if defined(MTK_HDMI_SUPPORT)
 static int ddp_bitblt_drop_frame = 0;
+#endif
 
 unsigned int cnt_rdma_underflow = 1;
 unsigned int cnt_rdma_abnormal = 1;
@@ -1113,7 +1115,7 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 {
     unsigned long flag;
     spin_lock_irqsave(&gRegisterUpdateLock , flag);
-    //*(volatile unsigned int*)(reg32) = ((*(volatile unsigned int*)(reg32) & ~(REG_FLD_MASK(field))) |  REG_FLD_VAL((field), (val)));
+    // *(volatile unsigned int*)(reg32) = ((*(volatile unsigned int*)(reg32) & ~(REG_FLD_MASK(field))) |  REG_FLD_VAL((field), (val)));
      mt65xx_reg_sync_writel( (*(volatile unsigned int*)(reg32) & ~(REG_FLD_MASK(field)))|REG_FLD_VAL((field), (val)), reg32);
      spin_unlock_irqrestore(&gRegisterUpdateLock , flag);
 }
@@ -1170,7 +1172,7 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
     unsigned int ret = 0;
     unsigned int value;
     DISP_MODULE_ENUM module;
-    DISP_OVL_INFO ovl_info;
+    //DISP_OVL_INFO ovl_info;
     DISP_PQ_PARAM * pq_param;
     DISP_PQ_PARAM * pq_cam_param;
     DISP_PQ_PARAM * pq_gal_param;
@@ -1178,7 +1180,8 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
     DISPLAY_TDSHP_T * tdshp_index;
     DISPLAY_GAMMA_T * gamma_index;
     DISPLAY_PWM_T * pwm_lut;
-    int layer, mutex_id;
+    //int layer, mutex_id;
+    int mutex_id;
     disp_wait_irq_struct wait_irq_struct;
     unsigned long lcmindex = 0;
 
