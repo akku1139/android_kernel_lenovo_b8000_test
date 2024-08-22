@@ -10,7 +10,7 @@ makedefs="V=0"
 #makedefs="V=1"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
-TOOLCHAIN="./toolchain/arm-cortex_a9-linux-gnueabihf-linaro_4.9.1-2014.05/bin"
+TOOLCHAIN="./toolchain/arm-cortex_a7-linux-gnueabihf_5.3.0/bin"
 #if [ "${KBUILD_OUTPUT_SUPPORT}" == "yes" ];then
 #  outdir=$curdir/out
 #  mkdir -p $outdir
@@ -195,7 +195,7 @@ for file in $(find ./ -name *.ko); do
 done
 
 echo "**** Patching all built modules (.ko) in /build_result/modules/ ****"
-find ./build_result/modules/ -type f -name '*.ko' | xargs -n 1 $TOOLCHAIN/arm-eabi-strip --strip-unneeded
+find ./build_result/modules/ -type f -name '*.ko' | xargs -n 1 $TOOLCHAIN/arm-cortex_a7-linux-gnueabihf-strip --strip-unneeded
 echo "**** Finnish ****"
 
 #echo "**** You can find kernelFile in root folder: /build_result/kernel/ ****"
