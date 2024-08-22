@@ -279,7 +279,7 @@ typedef bool                    MBOOL;
                                             ISP_IRQ_INTX_STATUS_LSC_ERR_ST |\
                                             ISP_IRQ_INTX_STATUS_LSC2_ERR_ST |\
                                             ISP_IRQ_INTX_STATUS_LCE_ERR_ST)
-//                                            ISP_IRQ_INTX_STATUS_IMGO_ERR_ST |\
+//                                            ISP_IRQ_INTX_STATUS_IMGO_ERR_ST |\   //
 //                                            ISP_IRQ_INTX_STATUS_DMA_ERR_ST)      //DMA_ERR rootcause not clear. it caused resume problem with busy log print out.
 //                                            ISP_IRQ_INTX_STATUS_BPC_ERR_ST |\    //Vent@20121025: Remove ISP_IRQ_INTX_STATUS_BPC_ERR_ST. From TH Wu's explanation, this bit is not used as an error state anymore.
 
