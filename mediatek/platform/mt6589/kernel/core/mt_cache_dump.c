@@ -37,7 +37,7 @@ void dump_data_cache_L1(){
 
     __inner_clean_dcache_L1();
     __disable_dcache();
-    printk("[CPU%] Dump L1 D cache...\n",smp_processor_id());
+    printk("[CPU%u] Dump L1 D cache...\n",smp_processor_id());
     printk("ADDRESS\tSEC\tSET\tWAY\tMOESI\t00\t04\t08\t0C\t10\t14\t18\t1C\t20\t24\t28\t2C\t30\t34\t38\t3C\n");
     for (cache_set = 0; cache_set < max_cache_set; cache_set++)
     {
@@ -102,7 +102,7 @@ void dump_data_cache_L2(){
 
     __inner_clean_dcache_L2();
     __disable_dcache();
-    printk("[CPU%] Dump L2 D cache...\n",smp_processor_id());
+    printk("[CPU%u] Dump L2 D cache...\n",smp_processor_id());
     printk("ADDRESS\tSEC\tSET\tWAY\tMOESI\t00\t04\t08\t0C\t10\t14\t18\t1C\t20\t24\t28\t2C\t30\t34\t38\t3C\n");
 
     for (cache_set = 0; cache_set < max_cache_set; cache_set++)
