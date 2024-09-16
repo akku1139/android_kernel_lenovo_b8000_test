@@ -13,14 +13,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Env cache (restore)
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ./
+          key: env-cache-${{ github.sha }}
+          restore-keys: env-cache-
+
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup env
         run: |
-          sudo apt install python2
           sudo ln -sf /usr/bin/bash /usr/bin/sh
-          sudo ln -sf /usr/bin/python2 /usr/bin/python
+          echo `pwd`/toolchain/Python-2.7.18 >> $GITHUB_PATH
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
@@ -36,3 +43,10 @@ jobs:
             git commit -m "Build"
             git push
           fi
+
+      - name: Env cache (save)
+        if: ${{ !cancelled() }}
+        uses: actions/cache/save@v4
+        with:
+          path: ./
+          key: env-cache-${{ github.sha }}
