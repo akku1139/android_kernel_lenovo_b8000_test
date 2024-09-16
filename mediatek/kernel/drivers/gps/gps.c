@@ -37,26 +37,6 @@
 #include <linux/semaphore.h>
 #include <linux/version.h>
 
-#if 0
-#if defined(CONFIG_ARCH_MT6573)
-#include <mach/mt6573_devs.h>
-#include <mach/mt6573_typedefs.h>
-#elif defined(CONFIG_ARCH_MT6575)
-#include <mach/mt6575_devs.h>
-#include <mach/mt6575_typedefs.h>
-#elif defined(CONFIG_ARCH_MT6516)
-#include <mach/mt6516_devs.h>
-#include <mach/mt6516_typedefs.h>
-#include <mach/mt6516_gpio.h>
-#include <mach/mt6516_pll.h>
-#elif defined(CONFIG_ARCH_MT6575T)
-#include <mach/mt6575_devs.h>
-#include <mach/mt6575_typedefs.h>
-#elif defined(CONFIG_ARCH_MT6577)
-#include <mach/mt6577_devs.h>
-#include <mach/mt6577_typedefs.h>
-#endif
-#endif
 
 #include <mach/devs.h>
 #include <mach/mt_typedefs.h>
@@ -815,7 +795,6 @@ static ssize_t mt3326_gps_write(struct file *file, const char __user *buf, size_
 {    
     struct gps_data *dev = file->private_data;
     ssize_t ret = 0;
-    size_t copy_size = 0;
 
     GPS_TRC();    
     
@@ -831,8 +810,7 @@ static ssize_t mt3326_gps_write(struct file *file, const char __user *buf, size_
     if (down_interruptible(&dev->sem))
         return -ERESTARTSYS;
 
-    copy_size = min(count, sizeof(dev->dat_buf));
-    if (copy_from_user(dev->dat_buf, buf, copy_size)) {
+    if (copy_from_user(dev->dat_buf, buf, count)) {
         GPS_DBG("copy_from_user error");
         ret = -EFAULT;
     } else {

@@ -24,15 +24,15 @@ extern void __inner_flush_dcache_all(void);
 extern void __inner_flush_dcache_L1(void);
 extern void __inner_flush_dcache_L2(void);
 
-void inner_dcache_flush_all(void)
+void inner_dcache_flush_all()
 {
     __inner_flush_dcache_all();
 }
-void inner_dcache_flush_L1(void)
+void inner_dcache_flush_L1()
 {
     __inner_flush_dcache_L1();
 }
-void inner_dcache_flush_L2(void)
+void inner_dcache_flush_L2()
 {
     __inner_flush_dcache_L2();
 }

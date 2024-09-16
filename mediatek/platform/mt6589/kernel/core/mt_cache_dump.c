@@ -10,36 +10,34 @@
 #include <linux/cpu.h>
 #include <linux/smp.h>
 
-extern void __inner_clean_dcache_L1(void);
-extern void __inner_clean_dcache_L2(void);
-extern void __enable_dcache(void);
-extern void __disable_dcache(void);
-extern void __enable_icache(void);
-extern void __disable_icache(void);
+extern void __inner_clean_dcache_L1();
+extern void __inner_clean_dcache_L2();
+extern void __enable_dcache();
+extern void __disable_dcache();
+extern void __enable_icache();
+extern void __disable_icache();
 
-void dump_data_cache_L1(void *null){
+void dump_data_cache_L1(){
     unsigned int cache_tag;
     unsigned int cache_level = 0;
     unsigned int cache_way;
     unsigned int cache_set;
     unsigned int elem_idx;
-    //unsigned int cache_data1,cache_data2,cache_data3;
-    unsigned int cache_data1 = 0;
-    unsigned int cache_data2 = 0;
+    unsigned int cache_data1,cache_data2,cache_data3;
     unsigned int tag_address;
     unsigned int sec;
     unsigned int tag_MOESI;
     unsigned int dirty_MOESI;
     unsigned int outer_memory_att;
     unsigned int data_cache_size = 64;
-    //unsigned int max_cache_level = 2;
+    unsigned int max_cache_level = 2;
     unsigned int max_cache_set = 0x80;
     unsigned int max_cache_way = 0x4;
-    //unsigned int tmp;
+    unsigned int tmp;
 
     __inner_clean_dcache_L1();
     __disable_dcache();
-    printk("[CPU%u] Dump L1 D cache...\n",smp_processor_id());
+    printk("[CPU%] Dump L1 D cache...\n",smp_processor_id());
     printk("ADDRESS\tSEC\tSET\tWAY\tMOESI\t00\t04\t08\t0C\t10\t14\t18\t1C\t20\t24\t28\t2C\t30\t34\t38\t3C\n");
     for (cache_set = 0; cache_set < max_cache_set; cache_set++)
     {
@@ -84,29 +82,27 @@ void dump_data_cache_L1(void *null){
     }
     __enable_dcache();
 }
-void dump_data_cache_L2(void){
+void dump_data_cache_L2(){
     unsigned int cache_tag;
     unsigned int cache_level = 2;
     unsigned int cache_way;
     unsigned int cache_set;
     unsigned int elem_idx;
-    //unsigned int cache_data1,cache_data2,cache_data3;
-    unsigned int cache_data1 = 0;
-    unsigned int cache_data2 = 0;
+    unsigned int cache_data1,cache_data2,cache_data3;
     unsigned int tag_address;
     unsigned int sec;
     unsigned int tag_MOESI;
     unsigned int dirty_MOESI;
     unsigned int outer_memory_att;
     unsigned int data_cache_size = 64;
-    //unsigned int max_cache_level = 2;
+    unsigned int max_cache_level = 2;
     unsigned int max_cache_set = 0x800;
     unsigned int max_cache_way = 0x8;
-    //unsigned int tmp;
+    unsigned int tmp;
 
     __inner_clean_dcache_L2();
     __disable_dcache();
-    printk("[CPU%u] Dump L2 D cache...\n",smp_processor_id());
+    printk("[CPU%] Dump L2 D cache...\n",smp_processor_id());
     printk("ADDRESS\tSEC\tSET\tWAY\tMOESI\t00\t04\t08\t0C\t10\t14\t18\t1C\t20\t24\t28\t2C\t30\t34\t38\t3C\n");
 
     for (cache_set = 0; cache_set < max_cache_set; cache_set++)
@@ -152,16 +148,13 @@ void dump_data_cache_L2(void){
     }
     __enable_dcache();
 }
-void dump_inst_cache(void *null){
+void dump_inst_cache(){
     unsigned int cache_tag;
     unsigned int cache_level = 1;
     unsigned int cache_way;
     unsigned int cache_set;
     unsigned int elem_idx;
-    //unsigned int cache_data1,cache_data2,cache_data3;
-    unsigned int cache_data1 = 0;
-    unsigned int cache_data2 = 0;
-    unsigned int cache_data3 = 0;
+    unsigned int cache_data1,cache_data2,cache_data3;
     unsigned int valid;
     unsigned int tag_address;
     unsigned int sec;
@@ -169,7 +162,7 @@ void dump_inst_cache(void *null){
     unsigned int inst_cache_size = 32;
 
     __disable_icache();
-    printk("[CPU%u] Dump L1 I cache...\n",smp_processor_id());
+    printk("[CPU%] Dump L1 I cache...\n",smp_processor_id());
     printk("ADDRESS\tSEC\tSET\tWAY\tVALID\tarm_state\t00\t04\t08\t0C\t10\t14\t18\t1C\n");
     for (cache_set = 0; cache_set < 512; cache_set++)
     {

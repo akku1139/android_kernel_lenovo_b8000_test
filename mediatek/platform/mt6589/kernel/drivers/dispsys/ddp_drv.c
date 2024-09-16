@@ -1,38 +1,3 @@
-/* Copyright Statement:
- *
- * This software/firmware and related documentation ("MediaTek Software") are
- * protected under relevant copyright laws. The information contained herein
- * is confidential and proprietary to MediaTek Inc. and/or its licensors.
- * Without the prior written permission of MediaTek inc. and/or its licensors,
- * any reproduction, modification, use or disclosure of MediaTek Software,
- * and information contained herein, in whole or in part, shall be strictly prohibited.
- */
-/* MediaTek Inc. (C) 2012. All rights reserved.
- *
- * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
- * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
- * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
- * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
- * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
- * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
- * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
- * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
- * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
- * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
- * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
- * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
- * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
- * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
- * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
- * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
- *
- * The following software/firmware and/or related documentation ("MediaTek Software")
- * have been modified by MediaTek Inc. All revisions are subject to any receiver's
- * applicable license agreements with MediaTek Inc.
- */
-
 #include <linux/kernel.h>
 #include <linux/mm.h>
 #include <linux/mm_types.h>
@@ -475,9 +440,7 @@ extern void wfd_source_buffer_switch(void);
 #endif
 
 //extern void hdmi_test_switch_buffer(void);
-#if defined(MTK_HDMI_SUPPORT)
 static int ddp_bitblt_drop_frame = 0;
-#endif
 
 unsigned int cnt_rdma_underflow = 1;
 unsigned int cnt_rdma_abnormal = 1;
@@ -1115,7 +1078,7 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 {
     unsigned long flag;
     spin_lock_irqsave(&gRegisterUpdateLock , flag);
-    // *(volatile unsigned int*)(reg32) = ((*(volatile unsigned int*)(reg32) & ~(REG_FLD_MASK(field))) |  REG_FLD_VAL((field), (val)));
+    //*(volatile unsigned int*)(reg32) = ((*(volatile unsigned int*)(reg32) & ~(REG_FLD_MASK(field))) |  REG_FLD_VAL((field), (val)));
      mt65xx_reg_sync_writel( (*(volatile unsigned int*)(reg32) & ~(REG_FLD_MASK(field)))|REG_FLD_VAL((field), (val)), reg32);
      spin_unlock_irqrestore(&gRegisterUpdateLock , flag);
 }
@@ -1172,7 +1135,7 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
     unsigned int ret = 0;
     unsigned int value;
     DISP_MODULE_ENUM module;
-    //DISP_OVL_INFO ovl_info;
+    DISP_OVL_INFO ovl_info;
     DISP_PQ_PARAM * pq_param;
     DISP_PQ_PARAM * pq_cam_param;
     DISP_PQ_PARAM * pq_gal_param;
@@ -1180,8 +1143,7 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
     DISPLAY_TDSHP_T * tdshp_index;
     DISPLAY_GAMMA_T * gamma_index;
     DISPLAY_PWM_T * pwm_lut;
-    //int layer, mutex_id;
-    int mutex_id;
+    int layer, mutex_id;
     disp_wait_irq_struct wait_irq_struct;
     unsigned long lcmindex = 0;
 
@@ -1213,6 +1175,27 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
     DISP_DBG("cmd=0x%x, arg=0x%x \n", cmd, (unsigned int)arg);
     switch(cmd)
     {   
+        case DISP_IOCTL_WRITE_REG:
+            
+            if(copy_from_user(&wParams, (void *)arg, sizeof(DISP_WRITE_REG )))
+            {
+                DISP_ERR("DISP_IOCTL_WRITE_REG, copy_from_user failed\n");
+                return -EFAULT;
+            }
+
+            DISP_DBG("write  0x%x = 0x%x (0x%x)\n", wParams.reg, wParams.val, wParams.mask);
+            if(wParams.reg>DISPSYS_REG_ADDR_MAX || wParams.reg<DISPSYS_REG_ADDR_MIN)
+            {
+                DISP_ERR("reg write, addr invalid, addr min=0x%x, max=0x%x, addr=0x%x \n", 
+                    DISPSYS_REG_ADDR_MIN, 
+                    DISPSYS_REG_ADDR_MAX, 
+                    wParams.reg);
+                return -EFAULT;
+            }
+            
+            *(volatile unsigned int*)wParams.reg = (*(volatile unsigned int*)wParams.reg & ~wParams.mask) | (wParams.val & wParams.mask);
+            //mt65xx_reg_sync_writel(wParams.reg, value);
+            break;
             
         case DISP_IOCTL_READ_REG:
             if(copy_from_user(&rParams, (void *)arg, sizeof(DISP_READ_REG)))
@@ -1461,6 +1444,28 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
                 DISP_ERR("disp driver : Copy to user error (result)\n");
                 return -EFAULT;            
             }
+            break;
+
+        case DISP_IOCTL_GET_OVL:
+            DISP_DBG("DISP_IOCTL_GET_OVL! \n");
+            if(copy_from_user(&ovl_info, (void*)arg , sizeof(DISP_OVL_INFO)))
+            {
+                DISP_ERR("DISP_IOCTL_SET_INTR, copy_from_user failed, %d\n", ret);
+                return -EFAULT;
+            } 
+
+            layer = ovl_info.layer;
+            
+            spin_lock(&gOvlLock);
+            ovl_info = disp_layer_info[layer];
+            spin_unlock(&gOvlLock);
+            
+            if(copy_to_user((void *)arg, &ovl_info, sizeof(DISP_OVL_INFO)))
+            {
+                DISP_ERR("disp driver : Copy to user error (result)\n");
+                return -EFAULT;            
+            }
+            
             break;
 
         case DISP_IOCTL_AAL_EVENTCTL:

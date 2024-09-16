@@ -819,7 +819,7 @@ kal_bool A5142MIPI_set_sensor_item_info(kal_uint16 group_idx, kal_uint16 item_id
 ********************************************************************************/
 static void A5142MIPI_Init_setting(void)
 {
-    //kal_uint16 status = 0;
+    kal_uint16 status = 0;
     
     SENSORDB( "Enter!");
     
