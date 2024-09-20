@@ -39,7 +39,7 @@ jobs:
         run: bash ./build.sh lenovo89_tb_x10_jb2
         env:
           MAKEJOBS: "-j5"
-          MAKEDEFS: HOSTCC="ccache gcc" HOSTCXX="ccache g++" CROSS_COMPILE="ccache ./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a7-linux-gnueabihf-"
+          MAKEDEFS: 'HOSTCC="ccache gcc" HOSTCXX="ccache g++" CROSS_COMPILE="ccache ./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a7-linux-gnueabihf-"'
 
       - name: Git
         run: |
