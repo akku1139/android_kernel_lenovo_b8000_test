@@ -16,6 +16,9 @@ TOOLCHAIN="./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin"
 #  mkdir -p $outdir
 #fi
 
+echo "**** Debug output ****"
+echo ${makeflags} ${makedefs}
+
 usage() {
     echo "Usage: $0 {release|rebuild|clean|silent|verbose|single} [config-xxx]"
     echo "  config file will be generated if build with TARGET_PRODUCT"
