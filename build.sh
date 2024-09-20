@@ -6,7 +6,7 @@ release="n"
 rebuild="n"
 clean="n"
 makeflags="-w ${MAKEFLAGS}"
-makedefs="V=0 HOSTCC='ccache gcc' HOSTCXX='ccache g++' CROSS_COMPILE='ccache ./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a7-linux-gnueabihf-' ${MAKEDEFS}"
+makedefs="V=0 HOSTCC='ccache gcc' HOSTCXX='ccache g++' CROSS_COMPILE='./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a7-linux-gnueabihf-' ${MAKEDEFS}"
 #makedefs="V=1"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
@@ -17,7 +17,7 @@ TOOLCHAIN="./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin"
 #fi
 
 echo "**** Debug output ****"
-echo ${makeflags} ${makedefs}
+echo make ${makeflags} ${makejobs} ${makedefs}
 
 usage() {
     echo "Usage: $0 {release|rebuild|clean|silent|verbose|single} [config-xxx]"
