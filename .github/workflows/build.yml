@@ -17,7 +17,9 @@ jobs:
         id: cache
         uses: actions/cache/restore@v4
         with:
-          path: ./
+          path: |
+            ./
+            /dev/shm/ccache
           key: env-cache-${{ github.sha }}
           restore-keys: env-cache-
 
@@ -28,11 +30,16 @@ jobs:
         run: |
           sudo ln -sf /usr/bin/bash /usr/bin/sh
           echo `pwd`/toolchain/Python-2.7.18 >> $GITHUB_PATH
+          mkdir -p /dev/shm/ccache
+          sudo apt install ccache
+          ccache -M 5G
+          ccache -z
 
       - name: Build
         run: bash ./build.sh lenovo89_tb_x10_jb2
         env:
           MAKEJOBS: "-j5"
+          MAKEDEFS: HOSTCC="ccache gcc" HOSTCXX="ccache g++" CROSS_COMPILE="ccache ./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a7-linux-gnueabihf-"
 
       - name: Git
         run: |
@@ -44,9 +51,21 @@ jobs:
             git push
           fi
 
+      - name: Ccache statistics
+        if: ${{ !cancelled() }}
+        run: ccache -sv
+
+      - name: Clean Repository
+        if: ${{ !cancelled() }}
+        run: |
+          git clean -ffdx
+          git reset --hard HEAD
+
       - name: Env cache (save)
         if: ${{ !cancelled() }}
         uses: actions/cache/save@v4
         with:
-          path: ./
+          path: |
+            ./
+            /dev/shm/ccache
           key: env-cache-${{ github.sha }}
