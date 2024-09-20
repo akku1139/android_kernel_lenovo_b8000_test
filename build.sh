@@ -6,7 +6,7 @@ release="n"
 rebuild="n"
 clean="n"
 makeflags="-w ${MAKEFLAGS}"
-makedefs="V=0 HOSTCC='ccache gcc' HOSTCXX='ccache g++' CROSS_COMPILE='./toolchain/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a7-linux-gnueabihf-' ${MAKEDEFS}"
+makedefs="V=0 ${MAKEDEFS}"
 #makedefs="V=1"
 makejobs=${MAKEJOBS}
 curdir=`pwd`
